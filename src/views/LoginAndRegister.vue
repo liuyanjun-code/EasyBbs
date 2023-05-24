@@ -127,7 +127,6 @@
 </template>
 <script setup>
 import { ref, reactive, getCurrentInstance, nextTick } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
 const api = {
   checkCode: '/api/checkCode'
 }
