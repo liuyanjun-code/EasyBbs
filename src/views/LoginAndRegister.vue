@@ -126,9 +126,11 @@
   </div>
 </template>
 <script setup>
+import { async } from '@kangc/v-md-editor';
 import { ref, reactive, getCurrentInstance, nextTick } from 'vue'
 const api = {
-  checkCode: '/api/checkCode'
+  checkCode: '/api/checkCode',
+  sendMailCode:"/sendEmailCode"
 }
 const { proxy } = getCurrentInstance()
 // 0:注册1：登陆：2：重置密码
@@ -192,12 +194,24 @@ const showSendEmailDialog=()=>{
 }
 // 发送邮件
 const sendEmailCode=()=>{
-  formData4SendMailCodeRef.value.validate('email',(valid)=>{
+  formData4SendMailCodeRef.value.validate(async (valid)=>{
     if(!valid){
       return
-    }else{
-      console.log('请求后台发送验证码')
     }
+    const params =Object.assign({},formData4SendMailCode.value)
+    params.type=0
+    let result=await proxy.Request({
+      url:api.sendMailCode,
+      params:params,
+      errorCallback:()=>{
+        changeCheckCode(1)
+      }
+    })
+    if(!result){
+      return
+    }
+    proxy.Message.success('验证码发送成功，请登陆邮箱查看')
+    dialogConfig4SendMailCode.show=false
   })
 }
 // 登陆注册

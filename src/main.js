@@ -9,12 +9,16 @@ import '@/assets/base.scss'
 import '@/assets/icon/iconfont.css'
 // 全局方法
 import Verify from '@/utils/Verify'
+import Messaeg from '@/utils/Message'
+import Request from '@/utils/Request'
 // 全局组件
 import Dialog from '@/components/Dialog.vue'
 const app = createApp(App)
 app.use(router)
 app.config.globalProperties.VueCookies = VueCookies
 app.config.globalProperties.Verify=Verify
+app.config.globalProperties.Messaeg=Messaeg
+app.config.globalProperties.Request=Request
 app.config.globalProperties.globalInfo={
   bodyWidth:1300
 }
