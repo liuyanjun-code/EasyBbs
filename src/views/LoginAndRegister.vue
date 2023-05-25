@@ -32,7 +32,7 @@
             </el-input>
             <el-button type="primary" size="large" class="send-email-btn" @click="getEmailCode">获取验证码</el-button>
           </div>
-          <el-popover placement="left-start" :width="500" trigger="hover">
+          <el-popover placement="left-start" :width="500" trigger="click">
             <div>
               <p>1：在垃圾箱里查找邮箱验证码</p>
               <p>2：在邮箱中设置头像=>设置->反垃圾=>白名单=>设置邮箱白名单</p>
@@ -154,7 +154,6 @@ defineExpose({ showPanel })
 const checkCodeUrl = ref(api.checkCode)
 const checkCodeUrl4SendMailCode = ref(api.checkCode)
 const changeCheckCode = (type) => {
-  // debugger
   if (type === 0) {
     checkCodeUrl.value = api.checkCode + '?type=' + type + '&time=' + new Date().getTime()
   } else {

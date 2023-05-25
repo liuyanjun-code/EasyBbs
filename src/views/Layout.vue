@@ -6,7 +6,19 @@
           <span v-for="(item, index) in logoInfo" :key="index" :style="{ color: item.color }">{{ item.letter }}</span>
         </router-link>
         <!-- 板块信息 -->
-        <div class="menu-panel"></div>
+        <div class="menu-panel">
+          <template v-for="(board, index) in boardList" :key="index">
+            <el-popover placement="bottom-start" :width="300" trigger="hover" v-if="board.children.length > 0">
+              <template #reference>
+                <span class="menu-item">{{ board.boardName }}</span>
+              </template>
+              <div class="sub-board-list">
+                <span class="sub-board" v-for="subBorad in board.children">{{ subBorad.boardName }}</span>
+              </div>
+            </el-popover>
+            <span class="menu-item" v-else>{{ board.boardName }}</span>
+          </template>
+        </div>
         <!-- 登录，注册，用户信息 -->
         <div class="user-info-panel">
           <div class="op-btn">
@@ -72,7 +84,8 @@ const router = useRouter()
 const route = useRoute()
 const store = useStore()
 const api = {
-  getUserInfo: '/getUserInfo'
+  getUserInfo: '/getUserInfo',
+  loadBoard: '/board/loadBoard'
 }
 const logoInfo = ref([
   {
@@ -138,7 +151,8 @@ const loginAndRegister = (type) => {
 }
 onMounted(() => {
   initSctoll(),
-    getUserInfo()
+    getUserInfo(),
+    loadBoard()
 })
 // 获取用户信息
 const getUserInfo = async () => {
@@ -149,6 +163,18 @@ const getUserInfo = async () => {
     return
   }
   store.commit('updateLoginUserInfo', result.data)
+}
+
+// 获取板块信息
+const boardList = ref([])
+const loadBoard = async () => {
+  let result = await proxy.Request({
+    url: api.loadBoard
+  })
+  if (!result) {
+    return
+  }
+  boardList.value = result.data
 }
 // 监听用户登陆信息
 const userInfo = ref({})
@@ -197,6 +223,9 @@ watch(
 
     .menu-panel {
       flex: 1;
+      .menu-item{
+        margin-left: 10px;
+      }
     }
 
     .user-info-panel {
@@ -222,5 +251,23 @@ watch(
       }
     }
   }
+}
+.sub-board-list{
+  display: flex;
+  flex-wrap: wrap;
+  .sub-board{
+    padding: 0px 10px;
+    border-radius: 20px;
+    margin-right: 10px;
+    border: 1px solid #d8d7d7;
+    color:rgb(96, 95, 95);
+    margin-top: 10px;
+    background-color: #ddd;
+    cursor: pointer;
+    &:hover{
+      color: var(--link);
+    }
+  }
+
 }
 </style>
