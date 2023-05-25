@@ -49,7 +49,7 @@
             </div>
             <div class="user-info">
               <el-dropdown>
-                <avatar userId="7437465925" width="50"></avatar>
+                <avatar userId="7437465925" :width="50"></avatar>
                 <template #dropdown>
                   <el-dropdown-menu>
                     <el-dropdown-item>我的主页</el-dropdown-item>
@@ -66,7 +66,7 @@
         </div>
       </div>
     </div>
-    <div>
+    <div class="body-content">
       <router-view></router-view>
     </div>
     <!-- 登陆注册 -->
@@ -207,6 +207,7 @@ watch(
   width: 100%;
   height: 60px;
   position: fixed;
+  top: 0;
   box-shadow: 0 2px 6px 0 #ddd;
 
   .header-content {
@@ -269,5 +270,9 @@ watch(
     }
   }
 
+}
+.body-content{
+  margin-top: 60px;
+  position: relative;
 }
 </style>

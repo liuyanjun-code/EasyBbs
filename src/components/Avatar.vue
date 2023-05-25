@@ -14,8 +14,8 @@ const props = defineProps({
     type: String,
   },
   width: {
-    type: String,
-    default: '60'
+    type: Number,
+    default: 60
   },
   addLink: {
     type: Boolean,

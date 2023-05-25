@@ -17,6 +17,7 @@ import Request from '@/utils/Request'
 // 全局组件
 import Dialog from '@/components/Dialog.vue'
 import Avatar from '@/components/Avatar.vue'
+import Cover from '@/components/Cover.vue'
 const app = createApp(App)
 app.use(router)
 app.use(store)
@@ -26,9 +27,11 @@ app.config.globalProperties.Message=Message
 app.config.globalProperties.Request=Request
 app.config.globalProperties.globalInfo={
   bodyWidth:1300,
-  avatarUrl:"/api/file/getAvatar/"
+  avatarUrl:"/api/file/getAvatar/",
+  iamgeUrl:'/api/file/getImage/'
 }
 app.use(ElementPlus)
 app.component('Dialog',Dialog)
 app.component('Avatar',Avatar)
+app.component('Cover',Cover)
 app.mount('#app')
