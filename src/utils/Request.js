@@ -1,10 +1,10 @@
 import axios from 'axios'
-
+import store from '../store'
 import { ElLoading } from 'element-plus'
 
-import Messaeg from './Message'
+import Message from '@/utils/Message'
 
-const contentTypeForm = 'application/x-www-form-urlencoded;charset=UTF-8'
+const contentTypeForm = "application/x-www-form-urlencoded;charset=UTF-8"
 const contentTypeJson = 'application/json'
 const instance = axios.create({
   baseURL: '/api',
@@ -27,7 +27,7 @@ instance.interceptors.request.use(
     if (error.config.showLoading && loading) {
       loading.close()
     }
-    Messaeg.error('请求发送失败')
+    Message.error('请求发送失败')
     return Promise.reject('请求发送失败')
   }
 )
@@ -42,6 +42,8 @@ instance.interceptors.response.use(
     if (responseData.code == 200) {
       return responseData
     } else if (responseData.code === 901) {
+      store.commit('showLogin',true)
+      store.commit('updateLoginUserInfo',null)
       return Promise.reject({ showError: false, msg: '登陆超时' })
     } else {
       if (errorCallback) {
@@ -62,7 +64,7 @@ const request = config => {
   let contentType = contentTypeForm
   let formData = new FormData()
   for (let key in params) {
-    formData.append(key, params[key] === 'undefined' ? '' : params[key])
+    formData.append(key, params[key] === undefined ? '' : params[key])
   }
   if (dataType != null && dataType === 'json') {
     contentType = contentTypeJson
@@ -80,7 +82,7 @@ const request = config => {
     })
     .catch(error => {
       if (error.showError) {
-        Messaeg.error(error.msg)
+        Message.error(error.msg)
       }
       return null
     })

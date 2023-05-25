@@ -2,16 +2,16 @@ import { ElMessage } from 'element-plus'
 const showMessage = (msg, callback, type) => {
   ElMessage({
     type: type,
-    messaeg: msg,
+    message: msg,
     duration: 2000,
-    onclose: () => {
+    onClose: () => {
       if (callback) {
         callback()
       }
     }
   })
 }
-const messaeg = {
+const message = {
   error: (msg, callback) => {
     showMessage(msg, callback, 'error')
   },
@@ -22,4 +22,4 @@ const messaeg = {
     showMessage(msg, callback, 'warming')
   }
 }
-export default messaeg
+export default message

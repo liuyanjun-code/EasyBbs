@@ -25,12 +25,12 @@
         <!-- 注册才有 -->
         <el-form-item prop="emailCode" v-if="opType === 0 || opType === 2">
           <div class="send-email-panel">
-            <el-input size="large" clearable placeholder="请输入邮箱验证码" v-model="formData.emailCode">
+            <el-input size="large" placeholder="请输入邮箱验证码" v-model="formData.emailCode">
               <template #prefix>
                 <span class="iconfont icon-checkcode"></span>
               </template>
             </el-input>
-            <el-button type="primary" size="large" class="send-email-btn" @click="showSendEmailDialog">获取验证码</el-button>
+            <el-button type="primary" size="large" class="send-email-btn" @click="getEmailCode">获取验证码</el-button>
           </div>
           <el-popover placement="left-start" :width="500" trigger="hover">
             <div>
@@ -44,7 +44,7 @@
             </template>
           </el-popover>
         </el-form-item>
-        <el-form-item prop="nickName" v-if="opType === 0 || opType === 2">
+        <el-form-item prop="nickName" v-if="opType === 0">
           <el-input size="large" clearable placeholder="请输入昵称" v-model="formData.nickName">
             <template #prefix>
               <span class="iconfont icon-account"></span>
@@ -86,7 +86,7 @@
           </div>
         </el-form-item>
         <el-form-item v-if="opType === 1">
-          <div class="rememberme-panel"><el-checkbox v-model="formData.remember">记住我</el-checkbox></div>
+          <div class="rememberme-panel"><el-checkbox v-model="formData.rememberMe">记住我</el-checkbox></div>
           <div class="no-account">
             <a href="javascript:void(0)" class="a-link" @click="showPanel(2)">忘记密码 ？</a>
             <a href="javascript:void(0)" class="a-link" @click="showPanel(0)">没有账号 ？</a>
@@ -99,7 +99,11 @@
           <a href="javascript:void(0)" class="a-link" @click="showPanel(1)">去登陆 ？</a>
         </el-form-item>
         <el-form-item>
-          <el-button type='primary' class="op-btn">登陆</el-button>
+          <el-button type='primary' class="op-btn" @click="doSubmit">
+            <span v-if="opType == 0">注册</span>
+            <span v-if="opType == 1">登陆</span>
+            <span v-if="opType == 2">重置密码</span>
+          </el-button>
         </el-form-item>
       </el-form>
     </Dialog>
@@ -107,7 +111,7 @@
     <Dialog :show="dialogConfig4SendMailCode.show" :title="dialogConfig4SendMailCode.title"
       :buttons="dialogConfig4SendMailCode.buttons" width="500px" :showCancel="false"
       @close="dialogConfig4SendMailCode.show = false">
-      <el-form  :model="formData4SendMailCode" :rules="rules" ref="formData4SendMailCodeRef" label-width="80px">
+      <el-form :model="formData4SendMailCode" :rules="rules" ref="formData4SendMailCodeRef" label-width="80px">
         <el-form-item label="邮箱">
           {{ formData.email }}
         </el-form-item>
@@ -126,12 +130,18 @@
   </div>
 </template>
 <script setup>
-import { async } from '@kangc/v-md-editor';
 import { ref, reactive, getCurrentInstance, nextTick } from 'vue'
+import { useStore } from 'vuex'
 const api = {
   checkCode: '/api/checkCode',
-  sendMailCode:"/sendEmailCode"
+  sendMailCode: "/sendEmailCode",
+  register: "/register",
+  login: '/login',
+  resetPwd: "/resetPwd",
 }
+const store=useStore()
+//  加密工具
+import md5 from 'js-md5'
 const { proxy } = getCurrentInstance()
 // 0:注册1：登陆：2：重置密码
 const opType = ref()
@@ -142,12 +152,12 @@ const showPanel = (type) => {
 defineExpose({ showPanel })
 // 验证码
 const checkCodeUrl = ref(api.checkCode)
-const checkCodeUrl4SendMailCode =ref(api.checkCode)
+const checkCodeUrl4SendMailCode = ref(api.checkCode)
 const changeCheckCode = (type) => {
   // debugger
-  if(type===0){
+  if (type === 0) {
     checkCodeUrl.value = api.checkCode + '?type=' + type + '&time=' + new Date().getTime()
-  }else{
+  } else {
     checkCodeUrl4SendMailCode.value = api.checkCode + '?type=' + type + '&time=' + new Date().getTime()
   }
 }
@@ -166,52 +176,53 @@ const formData4SendMailCodeRef = ref()
 const dialogConfig4SendMailCode = reactive({
   show: false,
   title: '发送邮箱验证码',
-  buttons:[
+  buttons: [
     {
-      type:'primary',
-      text:"发送验证码",
-      click:()=>{
+      type: 'primary',
+      text: "发送验证码",
+      click: () => {
         sendEmailCode()
       }
     }
   ]
 })
-const showSendEmailDialog=()=>{
-  formDataRef.value.validateField('email',(valid)=>{
-    if(!valid){
+// 获取邮箱验证码
+const getEmailCode = () => {
+  formDataRef.value.validateField('email', (valid) => {
+    if (!valid) {
       return
-    }else{
-      dialogConfig4SendMailCode.show=true
-      nextTick(()=>{
+    } else {
+      dialogConfig4SendMailCode.show = true
+      nextTick(() => {
         changeCheckCode(1)
         formData4SendMailCodeRef.value.resetFields()
-        formData4SendMailCode.value={
-          email:formData.value.email
+        formData4SendMailCode.value = {
+          email: formData.value.email
         }
       })
     }
   })
 }
 // 发送邮件
-const sendEmailCode=()=>{
-  formData4SendMailCodeRef.value.validate(async (valid)=>{
-    if(!valid){
+const sendEmailCode = () => {
+  formData4SendMailCodeRef.value.validate(async (valid) => {
+    if (!valid) {
       return
     }
-    const params =Object.assign({},formData4SendMailCode.value)
-    params.type=0
-    let result=await proxy.Request({
-      url:api.sendMailCode,
-      params:params,
-      errorCallback:()=>{
+    const params = Object.assign({}, formData4SendMailCode.value)
+    params.type = opType.value === 0 ? 0 : 1;
+    let result = await proxy.Request({
+      url: api.sendMailCode,
+      params: params,
+      errorCallback: () => {
         changeCheckCode(1)
       }
     })
-    if(!result){
+    if (!result) {
       return
     }
     proxy.Message.success('验证码发送成功，请登陆邮箱查看')
-    dialogConfig4SendMailCode.show=false
+    dialogConfig4SendMailCode.show = false
   })
 }
 // 登陆注册
@@ -247,7 +258,7 @@ const rules = {
   reRegisterPassword: [
     { required: true, message: "请再次输入密码" },
     {
-      validator: proxy.Verify.password,
+      validator: checkRepassword,
       message: '两次输入的密码不一致'
     }
   ],
@@ -269,6 +280,79 @@ const resetForm = () => {
     changeCheckCode(0)
     // 不知道为啥就是没法重置成功
     formDataRef.value.resetFields()
+    formData.value = {}
+    // 登陆
+    if (opType.value === 1) {
+      const cookieLoginInfo = proxy.VueCookies.get('loginInfo')
+      if (cookieLoginInfo) {
+        formData.value = cookieLoginInfo
+      }
+    }
+  })
+}
+// 登陆，注册，重置密码
+const doSubmit = () => {
+  formDataRef.value.validate(async (valid) => {
+    if (!valid) {
+      return
+    }
+    let params = {}
+    Object.assign(params, formData.value)
+    // 注册
+    if (opType.value === 0 || opType.value === 2) {
+      params.password = params.reRegisterPassword
+      delete params.registerPassword
+      delete params.reRegisterPassword
+    }
+    // 登陆
+    if (opType.value === 1) {
+      let cookieLoginInfo = proxy.VueCookies.get('loginInfo')
+      let cookiePassword = cookieLoginInfo == null ? null : cookieLoginInfo.password
+      if (params.password !== cookiePassword) {
+        params.password = md5(params.password)
+      }
+    }
+    let url = null
+    if (opType.value === 0) {
+      url = api.register
+    } else if (opType.value === 1) {
+      url = api.login
+    } else if (opType.value === 2) {
+      url = api.resetPwd
+    }
+    let result = await proxy.Request({
+      url: url,
+      params: params,
+      errorCallback: () => {
+        changeCheckCode(0)
+      }
+    })
+    if (!result) {
+      return
+    }
+    // 注册返回
+    if (opType.value === 0) {
+      proxy.Message.success('注册成功，请登陆')
+      showPanel(1)
+      //登陆
+    } else if (opType.value === 1) {
+      if (params.rememberMe) {
+        const loginInfo = {
+          email: params.email,
+          password: params.password,
+          rememberMe: params.rememberMe
+        }
+        proxy.VueCookies.set('loginInfo', loginInfo, '7d')
+      } else {
+        proxy.VueCookies.remove('loginInfo')
+      }
+      dialogConfig.show = false
+      proxy.Message.success('登陆成功')
+      store.commit('updateLoginUserInfo',result.data)
+    } else if (opType.value === 2) {
+      proxy.Message.success('重置密码成功，请登陆')
+      showPanel(1)
+    }
   })
 }
 </script>
@@ -282,6 +366,7 @@ const resetForm = () => {
       margin-left: 5px;
     }
   }
+
   .rememberme-panel {
     width: 100%;
   }
@@ -297,14 +382,14 @@ const resetForm = () => {
     width: 100%;
   }
 }
+
 .check-code-panel {
-    display: flex;
-    justify-content: space-around;
+  display: flex;
+  justify-content: space-around;
 
-    .check-code {
-      margin-left: 5px;
-      cursor: pointer;
-    }
+  .check-code {
+    margin-left: 5px;
+    cursor: pointer;
   }
-
+}
 </style>

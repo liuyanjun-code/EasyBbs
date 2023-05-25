@@ -9,21 +9,50 @@
         <div class="menu-panel"></div>
         <!-- 登录，注册，用户信息 -->
         <div class="user-info-panel">
-          <el-button type="primary" class="op-btn">
-            发帖<span class="iconfont icon-add"></span>
-          </el-button>
-          <el-button type="primary" class="op-btn">
-            搜索<span class="iconfont icon-search"></span>
-          </el-button>
-          <el-button-group :style="{ 'margin-left': '10px' }">
+          <div class="op-btn">
+            <el-button type="primary" class="op-btn">
+              发帖<span class="iconfont icon-add"></span>
+            </el-button>
+            <el-button type="primary" class="op-btn">
+              搜索<span class="iconfont icon-search"></span>
+            </el-button>
+          </div>
+          <!-- 显示用户信息 -->
+          <template v-if="userInfo.userId">
+            <div class="message-info">
+              <el-dropdown>
+                <el-badge :value="12" class="item">
+                  <div class="iconfont icon-message"></div>
+                </el-badge>
+                <template #dropdown>
+                  <el-dropdown-menu>
+                    <el-dropdown-item>回复我的</el-dropdown-item>
+                    <el-dropdown-item>攒了我的文章</el-dropdown-item>
+                    <el-dropdown-item>下载了我的附件</el-dropdown-item>
+                    <el-dropdown-item>攒了我的评论</el-dropdown-item>
+                    <el-dropdown-item>系统消息</el-dropdown-item>
+                  </el-dropdown-menu>
+                </template>
+              </el-dropdown>
+            </div>
+            <div class="user-info">
+              <el-dropdown>
+                <avatar userId="7437465925" width="50"></avatar>
+                <template #dropdown>
+                  <el-dropdown-menu>
+                    <el-dropdown-item>我的主页</el-dropdown-item>
+                    <el-dropdown-item>退出</el-dropdown-item>
+                  </el-dropdown-menu>
+                </template>
+              </el-dropdown>
+            </div>
+          </template>
+          <el-button-group :style="{ 'margin-left': '10px' }" v-else>
             <el-button type="primary" plain @click="loginAndRegister(1)">登录</el-button>
             <el-button type="primary" plain @click="loginAndRegister(0)">注册</el-button>
           </el-button-group>
         </div>
       </div>
-      <Dialog :show="showDialog" @close="showDialog = false">
-        <div :style="{ height: '1500px' }">好日子啊</div>
-      </Dialog>
     </div>
     <div>
       <router-view></router-view>
@@ -34,12 +63,17 @@
 </template>
 <script setup>
 import LoginAndRegister from './LoginAndRegister.vue';
-import { ref, getCurrentInstance, onMounted } from 'vue'
+import { ref, getCurrentInstance, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useStore } from 'vuex'
 // 获取全局内容
 const { proxy } = getCurrentInstance()
 const router = useRouter()
 const route = useRoute()
+const store = useStore()
+const api = {
+  getUserInfo: '/getUserInfo'
+}
 const logoInfo = ref([
   {
     letter: "E",
@@ -103,8 +137,44 @@ const loginAndRegister = (type) => {
   loginRegisterRef.value.showPanel(type)
 }
 onMounted(() => {
-  initSctoll()
+  initSctoll(),
+    getUserInfo()
 })
+// 获取用户信息
+const getUserInfo = async () => {
+  let result = await proxy.Request({
+    url: api.getUserInfo
+  })
+  if (!result) {
+    return
+  }
+  store.commit('updateLoginUserInfo', result.data)
+}
+// 监听用户登陆信息
+const userInfo = ref({})
+watch(
+  () => store.state.loginUserInfo,
+  (newVal, oldval) => {
+    if (newVal != undefined && newVal != null) {
+      userInfo.value = newVal
+    } else {
+      userInfo.value = {}
+    }
+  }, {
+  immediate: true, deep: true
+})
+// 监听是否展示登陆框(为后面点赞评论做准备)
+watch(
+  () => store.state.showLogin,
+  (newVal, oldval) => {
+    if (newVal) {
+      loginAndRegister(1)
+    }
+  },
+  {
+    immediate: true, deep: true
+  }
+)
 </script>
 <style scoped lang="scss">
 .header {
@@ -132,11 +202,23 @@ onMounted(() => {
     .user-info-panel {
       width: 300px;
       display: flex;
+      align-items: center;
 
       .op-btn {
         .iconfont {
           margin-left: 4px;
         }
+      }
+
+      .message-info {
+        .icon-message {
+          font-size: 20px;
+          color: rgb(147, 147, 147);
+        }
+
+        margin-left: 10px;
+        margin-right: 25px;
+        cursor: pointer;
       }
     }
   }
