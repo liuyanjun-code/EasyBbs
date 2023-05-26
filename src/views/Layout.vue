@@ -7,7 +7,7 @@
         </router-link>
         <!-- 板块信息 -->
         <div class="menu-panel">
-          <span class="menu-item" to="/">首页</span>
+          <router-link :class="['menu-item home', activePBoardId==undefined ? 'active' : '']" to="/">首页</router-link>
           <template v-for="board in boardList">
             <el-popover placement="bottom-start" :width="300" trigger="hover" v-if="board.children.length > 0">
               <template #reference>
@@ -217,9 +217,9 @@ const activePBoardId = ref(0)
 watch(
   () => store.state.activePBoardId,
   (newVal, oldval) => {
-    if (newVal != undefined) {
+    // if (newVal != undefined) {
       activePBoardId.value = newVal
-    }
+    // }
   },
   {
     immediate: true, deep: true
@@ -264,6 +264,10 @@ watch(
       .menu-item {
         margin-left: 20px;
         cursor: pointer;
+      }
+      .home{
+        text-decoration: none;
+        color: #000;
       }
 
       .active {
