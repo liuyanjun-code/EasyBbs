@@ -1,28 +1,54 @@
-import { createStore } from "vuex";
+import { createStore } from 'vuex'
 export default createStore({
-  state:{
+  state: {
     // 用户信息
-    loginUserInfo:null,
+    loginUserInfo: null,
     // 是否展示登陆
-    showLogin:false
+    showLogin: false,
+    // 板块信息,
+    boardList: [],
+    // 当前一级板块
+    activePBoardId: 0,
+    // 二级版块
+    activeBoardId: 0
   },
-  getters:{
-    getLoginUserInfo:(state)=>{
+  getters: {
+    getLoginUserInfo: state => {
       return state.loginUserInfo
-    }
-  },
-  mutations:{
-    updateLoginUserInfo(state,value){
-      state.loginUserInfo=value
     },
-    showLogin(state,value){
-      state.showLogin=value
+    getBoardList: state => {
+      return state.boardList
+    },
+    getSubBoardList: state => boardId => {
+      let board = state.boardList.find(item => {
+        return item.boardId == boardId
+      })
+      return board  ? board.children : []
+    },
+    getActivePBoardId: state => {
+      return state.activePBoardId
+    },
+    getActiveBoardId: state => {
+      return state.activeBoardId
     }
   },
-  actions:{
-
+  mutations: {
+    updateLoginUserInfo(state, value) {
+      state.loginUserInfo = value
+    },
+    showLogin(state, value) {
+      state.showLogin = value
+    },
+    saveBoardList(state, value) {
+      state.boardList = value
+    },
+    setActivePBoardId(state, value) {
+      state.activePBoardId = value
+    },
+    setActiveBoardId(state, value) {
+      state.activeBoardId = value
+    }
   },
-  modules:{
-
-  }
+  actions: {},
+  modules: {}
 })

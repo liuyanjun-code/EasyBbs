@@ -26,7 +26,7 @@ const props = defineProps({
     type:String
   }
 })
-const emit = defineEmits('loadData')
+const emit = defineEmits(["loadData"]);
 const handlePageNoChange = (pageNo) => {
   props.dataSource.pageNo = pageNo
   emit('loadData')

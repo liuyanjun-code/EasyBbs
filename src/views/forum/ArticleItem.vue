@@ -42,8 +42,7 @@ const props = defineProps({
 </script>
 <style lang='scss'>
 .article-item {
-  padding: 5px 10px;
-
+  background-color: #fff;
   .article-item-inner {
     border-bottom: 1px solid #ddd;
     padding: 10px;

@@ -7,16 +7,20 @@
         </router-link>
         <!-- 板块信息 -->
         <div class="menu-panel">
-          <template v-for="(board, index) in boardList" :key="index">
+          <span class="menu-item" to="/">首页</span>
+          <template v-for="board in boardList">
             <el-popover placement="bottom-start" :width="300" trigger="hover" v-if="board.children.length > 0">
               <template #reference>
-                <span class="menu-item">{{ board.boardName }}</span>
+                <span :class="['menu-item', board.boardId == activePBoardId ? 'active' : '']" @click="boardClickHandler(board)">{{
+                  board.boardName }}</span>
               </template>
               <div class="sub-board-list">
-                <span class="sub-board" v-for="subBorad in board.children">{{ subBorad.boardName }}</span>
+                <span :class="['sub-board', subBorad.boardId == activeBoardId ? 'active' : '']"
+                  v-for="subBorad in board.children" @click="subBoradClickHander(subBorad)">{{
+                    subBorad.boardName }}</span>
               </div>
             </el-popover>
-            <span class="menu-item" v-else>{{ board.boardName }}</span>
+            <span :class="['menu-item',board.boardId == activePBoardId ? 'active' : '']" v-else @click="boardClickHandler(board)">{{ board.boardName }}</span>
           </template>
         </div>
         <!-- 登录，注册，用户信息 -->
@@ -81,7 +85,6 @@ import { useStore } from 'vuex'
 // 获取全局内容
 const { proxy } = getCurrentInstance()
 const router = useRouter()
-const route = useRoute()
 const store = useStore()
 const api = {
   getUserInfo: '/getUserInfo',
@@ -151,8 +154,7 @@ const loginAndRegister = (type) => {
 }
 onMounted(() => {
   initSctoll(),
-    getUserInfo(),
-    loadBoard()
+  getUserInfo()
 })
 // 获取用户信息
 const getUserInfo = async () => {
@@ -175,7 +177,9 @@ const loadBoard = async () => {
     return
   }
   boardList.value = result.data
+  store.commit('saveBoardList', result.data)
 }
+loadBoard()
 // 监听用户登陆信息
 const userInfo = ref({})
 watch(
@@ -201,6 +205,36 @@ watch(
     immediate: true, deep: true
   }
 )
+// 板块点击
+const boardClickHandler = (board) => {
+  router.push(`/forum/${board.boardId}`)
+}
+const subBoradClickHander = (subBorad) => {
+  router.push(`/forum/${subBorad.pBoardId}/${subBorad.boardId}`)
+}
+// 当前选中的板块
+const activePBoardId = ref(0)
+watch(
+  () => store.state.activePBoardId,
+  (newVal, oldval) => {
+    if (newVal != undefined) {
+      activePBoardId.value = newVal
+    }
+  },
+  {
+    immediate: true, deep: true
+  }
+)
+const activeBoardId = ref(0)
+watch(
+  () => store.state.activeBoardId,
+  (newVal, oldval) => {
+    activeBoardId.value = newVal
+  },
+  {
+    immediate: true, deep: true
+  }
+)
 </script>
 <style scoped lang="scss">
 .header {
@@ -209,6 +243,8 @@ watch(
   position: fixed;
   top: 0;
   box-shadow: 0 2px 6px 0 #ddd;
+  z-index: 100000;
+  background-color: rgb(255, 255, 255);
 
   .header-content {
     margin: 0 auto;
@@ -224,8 +260,14 @@ watch(
 
     .menu-panel {
       flex: 1;
-      .menu-item{
-        margin-left: 10px;
+
+      .menu-item {
+        margin-left: 20px;
+        cursor: pointer;
+      }
+
+      .active {
+        color: var(--link);
       }
     }
 
@@ -253,26 +295,38 @@ watch(
     }
   }
 }
-.sub-board-list{
+
+.sub-board-list {
   display: flex;
   flex-wrap: wrap;
-  .sub-board{
+
+  .sub-board {
     padding: 0px 10px;
     border-radius: 20px;
     margin-right: 10px;
     border: 1px solid #d8d7d7;
-    color:rgb(96, 95, 95);
+    color: rgb(96, 95, 95);
     margin-top: 10px;
     background-color: #ddd;
     cursor: pointer;
-    &:hover{
+
+    &:hover {
       color: var(--link);
     }
   }
 
+  .active {
+    background-color: var(--link);
+    color: #fff;
+
+    &:hover {
+      color: #fff;
+    }
+  }
+
 }
-.body-content{
+
+.body-content {
   margin-top: 60px;
   position: relative;
-}
-</style>
+}</style>
