@@ -5,7 +5,7 @@
       <span :class="['board-item', boardId === 0 ? 'active' : '']">
         <router-link :to="`/forum/${pBoardId}`">全部</router-link>
       </span>
-      <span v-for="item in subBoardList" :class="['board-item', item.boardId==boardId ? 'active' : '']">
+      <span v-for="item in subBoardList" :class="['board-item', item.boardId == boardId ? 'active' : '']">
         <router-link :to="`/forum/${item.pBoardId}/${item.boardId}`">{{ item.boardName }}</router-link>
       </span>
     </div>
@@ -63,7 +63,7 @@ const loadArticle = async () => {
   let result = await proxy.Request({
     url: api.loadArticle,
     params: params,
-    showLoading:false
+    showLoading: false
   })
   loading.value = false
   if (!result) {
@@ -85,8 +85,8 @@ watch(
     boardId.value = newVal.boardId || 0
     setSubBoard()
     loadArticle()
-    store.commit('setActivePBoardId',newVal.pBoardId)
-    store.commit('setActiveBoardId',newVal.boardId)
+    store.commit('setActivePBoardId', newVal.pBoardId)
+    store.commit('setActiveBoardId', newVal.boardId)
   },
   {
     immediate: true, deep: true
@@ -108,7 +108,7 @@ watch(
   .sub-board {
     padding: 10px;
     background-color: rgb(243, 243, 243);
-    box-sizing: content-box;
+    // box-sizing: content-box;
 
     .board-item {
       display: inline-block;

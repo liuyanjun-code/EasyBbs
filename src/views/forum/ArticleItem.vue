@@ -9,13 +9,16 @@
           <div class="post-item">{{ data.postTime }}</div>
           <div class="address">&nbsp;·&nbsp;{{ data.userIpAddress }}</div>
           <el-divider direction="vertical"></el-divider>
-          <RouterLink :to="'/'" class="link-info">{{ data.pBoardName }}</RouterLink>
+          <RouterLink :to="`/forum/${data.pBoardId}`" class="link-info">{{ data.pBoardName }}</RouterLink>
           <template v-if="data.boardId">
             <span>&nbsp;&nbsp;/</span>
-            <RouterLink :to="'/'" class="link-info">{{ data.boardName }}</RouterLink>
+            <RouterLink :to="`/forum/${data.pBoardId}/${data.boardId}`" class="link-info">{{ data.boardName }}</RouterLink>
           </template>
         </div>
-        <router-link :to="'/'" class="title">{{ data.title }}</router-link>
+        <router-link :to="'/'" class="title-info">
+          <span v-if="data.topType == 1" class="top">置顶</span>
+          <span class="title">{{ data.title }}</span>
+        </router-link>
         <div class="summary">{{ data.summary }}</div>
         <div class="article-info">
           <span class="iconfont icon-eye-solid">{{ data.readCount === 0 ? '阅读' : data.readCount }}</span>
@@ -43,13 +46,16 @@ const props = defineProps({
 <style lang='scss'>
 .article-item {
   background-color: #fff;
+  padding: 5px 15px 0 15px;
+
   .article-item-inner {
     border-bottom: 1px solid #ddd;
-    padding: 10px;
+    padding: 10px 0;
     display: flex;
 
     .article-body {
       flex: 1;
+
       .user-info {
         display: flex;
         align-items: center;
@@ -71,13 +77,27 @@ const props = defineProps({
         }
       }
 
-      .title {
-        font-weight: bold;
-        text-decoration: none;
-        color: #4a4a4a;
+      .title-info {
         font-size: 16px;
         margin: 10px 0;
         display: inline-block;
+        text-decoration: none;
+
+        .top {
+          font-weight: bold;
+          font-size: 12px;
+          border-radius: 5px;
+          padding: 2px 5px;
+          border: 1px solid var(--pink);
+          color: var(--pink);
+          margin-right: 10px;
+        }
+
+        .title {
+          color: #4a4a4a;
+          font-weight: bold;
+
+        }
       }
 
       .summary {
@@ -107,4 +127,5 @@ const props = defineProps({
   &:hover {
     background-color: #f1f0f0;
   }
-}</style>
+}
+</style>
