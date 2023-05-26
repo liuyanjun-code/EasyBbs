@@ -103,9 +103,6 @@ const props = defineProps({
         }
       }
     }
-    .cover{
-      
-    }
   }
 
   &:hover {

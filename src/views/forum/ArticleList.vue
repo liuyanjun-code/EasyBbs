@@ -2,17 +2,19 @@
   <div class="container-body article-list-body" :style="{ width: globalInfo.bodyWidth + 'px' }">
     <div class="article-panel">
       <div class="top-tab">
-        <div>热榜</div>
+        <div :class="['tab', orderType == 0 ? 'active' : '']" @click="changeOrderType(0)">热榜</div>
         <el-divider direction="vertical"></el-divider>
-        <div>发布事件</div>
+        <div :class="['tab ', orderType == 1 ? 'active' : '']" @click="changeOrderType(1)">发布事件</div>
         <el-divider direction="vertical"></el-divider>
-        <div>最新</div>
+        <div :class="['tab ', orderType == 2 ? 'active' : '']" @click="changeOrderType(2)">最新</div>
       </div>
     </div>
     <div class="article-list">
-      <div v-for="item in articleListInfo.list">
-        <ArticleItem :data="item"></ArticleItem>
-      </div>
+      <DataList :loading="loading" :dataSource="articleListInfo" @loadData="loadArticle" noDataMsg="没有发现帖子,快发布一个">
+        <template #default="{ data }">
+          <ArticleItem :data="data"></ArticleItem>
+        </template>
+      </DataList>
     </div>
   </div>
 </template>
@@ -26,18 +28,31 @@ const { proxy } = getCurrentInstance()
 const api = {
   loadArticle: '/forum/loadArticle',
 }
+const orderType = ref(0)
+const changeOrderType = (type) => {
+  orderType.value = type
+  loadArticle()
+}
+const loading = ref(false)
 const articleListInfo = ref({})
 const loadArticle = async () => {
+  loading.value = true
+  let params = {
+    pageNo: articleListInfo.value.pageNo,
+    boardId: 0,
+    showLoading: false,
+    orderType: orderType.value
+  }
   let result = await proxy.Request({
     url: api.loadArticle,
-    params: {
-      boardId: 0
-    }
+    params: params
   })
+  loading.value = false
   if (!result) {
     return
   }
   articleListInfo.value = result.data
+  // articleListInfo.value.list = []
 }
 loadArticle()
 
@@ -52,6 +67,14 @@ loadArticle()
       align-items: center;
       padding: 10px;
       border-bottom: 1px solid #ddd;
+
+      .tab {
+        cursor: pointer;
+      }
+
+      .active {
+        color: var(--link);
+      }
     }
   }
 }
