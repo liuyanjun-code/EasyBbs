@@ -18,8 +18,8 @@ const message = {
   success: (msg, callback) => {
     showMessage(msg, callback, 'success')
   },
-  warming: (msg, callback) => {
-    showMessage(msg, callback, 'warming')
+  warning: (msg, callback) => {
+    showMessage(msg, callback, 'warning')
   }
 }
 export default message

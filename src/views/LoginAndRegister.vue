@@ -1,8 +1,8 @@
 <template>
   <div>
     <Dialog :show="dialogConfig.show" :title="dialogConfig.title" :buttons="dialogConfig.buttons" width="400px"
-      :showCancel="false" @close="dialogConfig.show = false">
-      <el-form class="login-register" :model="formData" :rules="rules" ref="formDataRef">
+      :showCancel="false" @close="closeDialog">
+      <el-form class="login-register" :model="formData" :rules="rules" ref="formDataRef" >
         <el-form-item prop="email">
           <el-input size="large" clearable placeholder="请输入邮箱" v-model="formData.email">
             <template #prefix>
@@ -353,6 +353,10 @@ const doSubmit = () => {
       showPanel(1)
     }
   })
+}
+const closeDialog=()=>{
+  dialogConfig.show=false
+  store.commit('showLogin',false)
 }
 </script>
 <style lang="scss">

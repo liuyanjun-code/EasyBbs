@@ -242,8 +242,8 @@ watch(
   height: 60px;
   position: fixed;
   top: 0;
+  z-index: 1;
   box-shadow: 0 2px 6px 0 #ddd;
-  z-index: 100000;
   background-color: rgb(255, 255, 255);
 
   .header-content {

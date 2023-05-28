@@ -9,9 +9,11 @@
     <slot :data="item"></slot>
   </div>
   <div class="pagination">
-    <el-pagination v-if="dataSource.pageTotal > 1" background :total="dataSource.totalCount"
+    <el-pagination v-if="dataSource.pageTotal > 1" 
+      :page-size='15' background :total="dataSource.totalCount"
       :current-page.sync="dataSource.pageNo" layout="prev,pager,next" @current-change="handlePageNoChange"
-      style="text-align: center" />
+      style="text-align: center" 
+      />
   </div>
 </template>
 <script setup>

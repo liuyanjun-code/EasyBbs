@@ -15,7 +15,7 @@
             <RouterLink :to="`/forum/${data.pBoardId}/${data.boardId}`" class="link-info">{{ data.boardName }}</RouterLink>
           </template>
         </div>
-        <router-link :to="'/'" class="title-info">
+        <router-link :to="`/post/${data.articleId}`" class="title-info">
           <span v-if="data.topType == 1" class="top">置顶</span>
           <span class="title">{{ data.title }}</span>
         </router-link>
