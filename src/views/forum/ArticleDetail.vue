@@ -71,6 +71,8 @@
   </div>
 </template>
 <script setup>
+import hljs from 'highlight.js';
+import 'highlight.js/styles/atom-one-light.css'
 import { ref, reactive, getCurrentInstance, onMounted,nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useStore } from 'vuex';
@@ -107,6 +109,8 @@ const getArticleDetail = async (articleId) => {
   havelike.value = result.data.haveLike
   // 图片预览
   imgagePreview()
+  // 代码高亮
+  highLightCode()
 }
 onMounted(() => {
   getArticleDetail(route.params.articleId)
@@ -197,6 +201,15 @@ const imgagePreview=()=>{
         imgaeViewerRef.value.show(index)
       })
       previewImgList.value=imageList
+    })
+  })
+}
+// 代码高亮
+const highLightCode=()=>{
+  nextTick(()=>{
+    let blocks=document.querySelectorAll('pre code')
+    blocks.forEach((item)=>{
+      hljs.highlightBlock(item)
     })
   })
 }
