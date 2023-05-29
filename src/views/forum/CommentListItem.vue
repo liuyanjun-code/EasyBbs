@@ -26,19 +26,19 @@
         </el-dropdown>
       </div>
       <div class="reply-info" v-if="commentData.showReply">
-        <PostComment :avatarWidth="30" :userId="currentUserId" :showInsertImg="false"
+        <CommentPost :avatarWidth="30" :userId="currentUserId" :showInsertImg="false"
         :articleId="articleId"
         :pCommentId="pCommentId"
         :replayUserId="replayUserId"
-        @hiddenAllReply="hiddenAllReplyHandler"
-        ></PostComment>
+        @postCommentFinish="postCommentFinsh"
+        ></CommentPost>
       </div>
     </div>
   </div>
 </template>
 <script setup>
 import { ref } from 'vue'
-import PostComment from './PostComment.vue';
+import CommentPost from './CommentPost.vue';
 const props = defineProps({
   articleId:{
     type:String
@@ -64,10 +64,10 @@ const showReplyPanel = (curData) => {
   //commentData默认是没有showReply该参数
   curData.showReply = !haveShow
   pCommentId.value=curData.commentId
+  replayUserId.value=curData.userId
 }
-const hiddenAllReplyHandler=(resultData)=>{
-  const children=props.commentData.children
-  children.unshift(resultData)
+const postCommentFinsh=(resultData)=>{
+  props.commentData.children=resultData
  }
 </script>
 <style lang='scss'>

@@ -10,9 +10,9 @@
     </div>
     <!-- 发送评论 -->
     <div class="comment-from-panel">
-      <PostComment :avatarWidth="50" :userId="currentUserInfo.userId" :showInsertImg="currentUserInfo.userId!=null"
+      <CommentPost :avatarWidth="50" :userId="currentUserInfo.userId" :showInsertImg="currentUserInfo.userId!=null"
       :articleId="articleId" :pCommentId="0"
-      @postCommentFinish="postCommentFinsh"></PostComment>
+      @postCommentFinish="postCommentFinsh"></CommentPost>
     </div>
     <div class="comment-list">
       <DataList :dataSource="commentListInfo" :loading="loading" @loadData="loadComment" noDataMsg="暂无评论，感紧抢占沙发吧">
@@ -32,7 +32,7 @@
 <script setup>
 import { useStore } from 'vuex'
 import CommentListItem from './CommentListItem.vue'
-import PostComment from './PostComment.vue';
+import CommentPost from './CommentPost.vue';
 import { ref, watch, getCurrentInstance } from 'vue'
 const { proxy } = getCurrentInstance()
 const store = useStore()
