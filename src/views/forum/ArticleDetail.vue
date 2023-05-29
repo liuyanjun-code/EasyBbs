@@ -47,7 +47,9 @@
         </div>
       </div>
       <!-- 评论 -->
-      <div class="comment-panel" id="view-comment">评论</div>
+      <div class="comment-panel" id="view-comment">
+        <CommentList v-if="articleInfo.userId" :articleId="articleInfo.articleId" :articleUserId="articleInfo.userId"></CommentList>
+      </div>
     </div>
   </div>
   <!-- 左侧快捷操作 -->
@@ -73,6 +75,7 @@
 <script setup>
 import hljs from 'highlight.js';
 import 'highlight.js/styles/atom-one-light.css'
+import CommentList from './CommentList.vue'
 import { ref, reactive, getCurrentInstance, onMounted,nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useStore } from 'vuex';
@@ -107,6 +110,8 @@ const getArticleDetail = async (articleId) => {
   articleInfo.value = result.data.forumArticle
   attachment.value = result.data.attachment
   havelike.value = result.data.haveLike
+  store.commit('setActivePBoardId',result.data.forumArticle.pBoardId)
+  store.commit('setActiveBoardId',result.data.forumArticle.boardId)
   // 图片预览
   imgagePreview()
   // 代码高亮
@@ -320,7 +325,6 @@ const highLightCode=()=>{
 
     .comment-panel {
       margin-top: 10px;
-      height: 30px;
       background-color: #fff;
     }
   }

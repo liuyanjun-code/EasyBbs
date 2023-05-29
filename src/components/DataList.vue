@@ -1,5 +1,5 @@
 <template>
-  <div v-if="!loading&&dataSource.list!=null&&dataSource.list.length==0">
+  <div v-if="!loading && dataSource.list != null && dataSource.list.length == 0">
     <NoData :msg="noDataMsg"></NoData>
   </div>
   <div class="skeleton" v-if="loading">
@@ -9,11 +9,9 @@
     <slot :data="item"></slot>
   </div>
   <div class="pagination">
-    <el-pagination v-if="dataSource.pageTotal > 1" 
-      :page-size='15' background :total="dataSource.totalCount"
+    <el-pagination v-if="dataSource.pageTotal > 1" :page-size='15' background :total="dataSource.totalCount"
       :current-page.sync="dataSource.pageNo" layout="prev,pager,next" @current-change="handlePageNoChange"
-      style="text-align: center" 
-      />
+      style="text-align: center" />
   </div>
 </template>
 <script setup>
@@ -21,11 +19,11 @@ const props = defineProps({
   dataSource: {
     type: Object,
   },
-  loading:{
-    type:Boolean
+  loading: {
+    type: Boolean
   },
-  noDataMsg:{
-    type:String
+  noDataMsg: {
+    type: String
   }
 })
 const emit = defineEmits(["loadData"]);
@@ -35,9 +33,10 @@ const handlePageNoChange = (pageNo) => {
 }
 </script>
 <style lang='scss'>
-.skeleton{
+.skeleton {
   padding: 15px;
 }
+
 .pagination {
   padding: 10px 0 10px 10px;
 }

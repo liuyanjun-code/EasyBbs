@@ -1,6 +1,7 @@
 <template>
-  <div class="avatar" :style="{ width: width + 'px', height: width + 'px', 'border-radius': width / 2 + 'px' }">
+  <div  class="avatar" :style="{ width: width + 'px', height: width + 'px', 'border-radius': width / 2 + 'px' }">
     <el-image v-if="userId" :style="{ width: width + 'px', height: width + 'px', 'border-radius': width / 2 + 'px' }" :src="globalInfo.avatarUrl+userId" fit="scale-down" loading="lazy" @click="goToUcenter"></el-image>
+    <div v-else class="no-login">未登录</div>
   </div>
 </template>
 <script setup>
@@ -31,5 +32,14 @@ const goToUcenter = () => {
 <style lang="scss">
 .avatar{
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  background-color: #ddd;
+  .no-login{
+    width: 100%;
+    text-align: center;
+    font-size: 13px;
+    
+  }
 }
 </style>
