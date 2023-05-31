@@ -1,29 +1,24 @@
 <template>
   <div class="comment-body">
     <div class="comment-title">
-      <div class="title">评论<span class="count">0</span></div>
+      <div class="title">评论<span class="count">{{ commentListInfo.totalCount }}</span></div>
       <div class="tab">
-        <span>热榜</span>
+        <span @click="orderChange(0)" :class="['tab-item',orderType == 0 ? 'active' : '']">热榜</span>
         <el-divider direction="vertical"></el-divider>
-        <span>最新</span>
+        <span @click="orderChange(1)" :class="['tab-item',orderType == 1 ? 'active' : '']">最新</span>
       </div>
     </div>
     <!-- 发送评论 -->
     <div class="comment-from-panel">
-      <CommentPost :avatarWidth="50" :userId="currentUserInfo.userId" :showInsertImg="currentUserInfo.userId!=null"
-      :articleId="articleId" :pCommentId="0"
-      @postCommentFinish="postCommentFinsh"></CommentPost>
+      <CommentPost :avatarWidth="50" :userId="currentUserInfo.userId" :showInsertImg="currentUserInfo.userId != null"
+        :articleId="articleId" :pCommentId="0" @postCommentFinish="postCommentFinsh"></CommentPost>
     </div>
     <div class="comment-list">
       <DataList :dataSource="commentListInfo" :loading="loading" @loadData="loadComment" noDataMsg="暂无评论，感紧抢占沙发吧">
-        <template #default="{data}">
-          <CommentListItem 
-          :commentData="data" 
-          :articleId="articleId"
-          :articleUserId="articleUserId"
-          :currentUserId="currentUserInfo.userId"
-          @hiddenAllReply="hiddenAllReplyHandler"
-          ></CommentListItem>
+        <template #default="{ data }">
+          <CommentListItem :commentData="data" :articleId="articleId" :articleUserId="articleUserId"
+            :currentUserId="currentUserInfo.userId" @hiddenAllReply="hiddenAllReplyHandler"
+            @reloadData="loadComment"></CommentListItem>
         </template>
       </DataList>
     </div>
@@ -47,13 +42,15 @@ const props = defineProps({
 const api = {
   loadComment: '/comment/loadComment',
   postComment: '/comment/postComment',
-  doLike: '/comment/doLike',
-  changeTopType: '/comment/changeTopType'
 }
 
 
 // 排序
 const orderType = ref(0)
+const orderChange = (type) => {
+  orderType.value=type
+  loadComment()
+}
 // 评论列表
 const loading = ref(null)
 const commentListInfo = ref({})
@@ -78,14 +75,19 @@ const loadComment = async () => {
 }
 loadComment()
 // 隐藏所有回复框
-const hiddenAllReplyHandler=()=>{
-  commentListInfo.value.list.forEach(element=>{
-    element.showReply=false
+const hiddenAllReplyHandler = () => {
+  commentListInfo.value.list.forEach(element => {
+    element.showReply = false
   })
- }
+}
+const emit = defineEmits(['updateCommentCount'])
 //评论发布完成
-const postCommentFinsh=(resultData)=>{
+const postCommentFinsh = (resultData) => {
   commentListInfo.value.list.unshift(resultData)
+  // 更新评论数量
+  const totalCount = commentListInfo.value.totalCount + 1
+  commentListInfo.value.totalCount = totalCount
+  emit('updateCommentCount', totalCount)
 }
 // 当前用户信息
 const currentUserInfo = ref({})
@@ -98,7 +100,6 @@ watch(
     immediate: true, deep: true
   }
 )
-
 </script>
 <style lang='scss'>
 .comment-body {
@@ -107,13 +108,22 @@ watch(
     align-items: center;
     margin-bottom: 20px;
     padding: 10px;
-    .count{
-      margin-left: 5px;
-      font-size: 14px;
-    }
 
     .title {
       font-size: 20px;
+
+      .count {
+        margin-left: 5px;
+        font-size: 14px;
+      }
+    }
+    .tab{
+      .tab-item{
+        cursor: pointer;
+      }
+      .active{
+        color: var(--link);
+      }
     }
 
     .tab {

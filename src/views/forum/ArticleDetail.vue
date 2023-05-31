@@ -48,7 +48,9 @@
       </div>
       <!-- 评论 -->
       <div class="comment-panel" id="view-comment">
-        <CommentList v-if="articleInfo.userId" :articleId="articleInfo.articleId" :articleUserId="articleInfo.userId"></CommentList>
+        <CommentList v-if="articleInfo.userId" :articleId="articleInfo.articleId" :articleUserId="articleInfo.userId"
+        @updateCommentCount="updateCommentCount"
+        ></CommentList>
       </div>
     </div>
   </div>
@@ -217,6 +219,11 @@ const highLightCode=()=>{
       hljs.highlightBlock(item)
     })
   })
+}
+//  更新评论数量
+const updateCommentCount=(totalCount)=>{
+  console.log(totalCount)
+  articleInfo.value.commentCount=totalCount
 }
 </script>
 <style lang='scss'>

@@ -56,8 +56,19 @@ const props = defineProps({
 // form信息
 const formData = ref({})
 const formDataRef = ref()
+const checkPostComment = (value, rule, callback) => {
+  if (value == null && formData.value.image == null) {
+    callback(new Error(rule.message
+    ))
+  } else {
+    callback()
+  }
+}
 const rules = {
-  content: [{ required: true, message: "请输入评论内容" }]
+  content: [
+    { required: true, message: "请输入评论内容", validator: checkPostComment },
+    { min: 5, message: '评论至少需要五个字' }
+  ]
 }
 const emit = defineEmits(['postCommentFinish'])
 const postCommentDo = () => {
@@ -79,6 +90,7 @@ const postCommentDo = () => {
     }
     proxy.Message.success('评论发表成功')
     formDataRef.value.resetFields()
+    removeCommentImg()
     emit('postCommentFinish', result.data)
   })
 }
@@ -106,7 +118,8 @@ const removeCommentImg = () => {
   .comment-form {
     flex: 1;
     margin: 0 10px;
-    .el-form-item{
+
+    .el-form-item {
       margin-bottom: 0;
     }
 

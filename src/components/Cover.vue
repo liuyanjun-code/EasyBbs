@@ -1,6 +1,6 @@
 <template>
   <div class="cover" :style="{width:width+'px',height:width+'px'}">
-    <el-image :style="{width:width+'px',height:width+'px'}" fit="scale-down" loading="lazy" :src="cover?globalInfo.iamgeUrl+cover:localCover"></el-image>
+    <el-image :style="{width:width+'px',height:width+'px'}" fit="scale-down" loading="lazy" :src="cover?globalInfo.imageUrl+cover:localCover"></el-image>
   </div>
 </template>
 <script setup>

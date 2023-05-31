@@ -7,8 +7,13 @@
         <span v-if="commentData.userId == articleUserId" class="tag-author">作者</span>
       </div>
       <div class="comment-content">
-        <span v-html="commentData.content"></span>
-        <CommentImage :src="globalInfo.iamgeUrl+commentData.imgPath.replace('.','_.')" v-if="commentData.imgPath"></CommentImage>
+        <div>
+          <span class="tag tag-topping" v-if="commentData.topType == 1">置顶</span>
+          <span class="tag no-audit" v-if="commentData.status==0">待审核</span>
+          <span v-html="commentData.content" class="contentInfo"></span>
+        </div>
+        <CommentImage :src="globalInfo.imageUrl + commentData.imgPath.replace('.', '_.')" v-if="commentData.imgPath">
+        </CommentImage>
       </div>
       <div class="op-panel">
         <div class="time">
@@ -20,7 +25,7 @@
         <el-dropdown v-if="articleUserId == currentUserId">
           <div class="iconfont icon-more"></div>
           <template #dropdown>
-            <el-dropdown-item>
+            <el-dropdown-item @click="opTop(commentData)">
               {{ commentData.opType == 0 ? '设为置顶' : '取消置顶' }}
             </el-dropdown-item>
           </template>
@@ -50,12 +55,8 @@
         </div>
       </div>
       <div class="reply-info" v-if="commentData.showReply">
-        <CommentPost 
-          :avatarWidth="30" 
-          :showInsertImg="false" :placeholderInfo="placeholderInfo" :userId="currentUserId"
-          :articleId="articleId" 
-          :pCommentId="pCommentId" 
-          :replyUserId="replyUserId"
+        <CommentPost :avatarWidth="30" :showInsertImg="false" :placeholderInfo="placeholderInfo" :userId="currentUserId"
+          :articleId="articleId" :pCommentId="pCommentId" :replyUserId="replyUserId"
           @postCommentFinish="postCommentFinsh">
         </CommentPost>
       </div>
@@ -63,7 +64,7 @@
   </div>
 </template>
 <script setup>
-import { ref } from 'vue'
+import { ref, getCurrentInstance } from 'vue'
 import CommentImage from './CommentImage.vue';
 import CommentPost from './CommentPost.vue';
 const props = defineProps({
@@ -80,7 +81,12 @@ const props = defineProps({
     type: String
   }
 })
-const emit = defineEmits(['hiddenAllReply'])
+const { proxy } = getCurrentInstance()
+const api = {
+  doLike: '/comment/doLike',
+  changeTopType: '/comment/changeTopType'
+}
+const emit = defineEmits(['hiddenAllReply', 'reloadData'])
 // 显示评论框
 const pCommentId = ref(0)
 const replyUserId = ref()
@@ -101,6 +107,20 @@ const showReplyPanel = (curData, type) => {
 }
 const postCommentFinsh = (resultData) => {
   props.commentData.children = resultData
+}
+//置顶
+const opTop = async (data) => {
+  let result = await proxy.Request({
+    url: api.changeTopType,
+    params: {
+      commentId: data.commentId,
+      topType: data.topType == 1 ? 0 : 1
+    }
+  })
+  if (!result) {
+    return
+  }
+  emit('reloadData')
 }
 </script>
 <style lang='scss'>
@@ -125,6 +145,7 @@ const postCommentFinsh = (resultData) => {
         background-color: var(--pink);
         color: #fff;
         font-size: 12px;
+        padding: 0px 3px;
         border-radius: 2px;
       }
     }
@@ -133,7 +154,28 @@ const postCommentFinsh = (resultData) => {
       margin-top: 5px;
       font-size: 15px;
       line-height: 22px;
-      span{
+
+      .tag {
+        font-size: 13px;
+        padding: 0px 5px;
+        margin-right: 5px;
+        border-radius: 3px;
+        font-weight: bolder;
+      }
+
+      .tag-topping {
+       color: var(--pink);
+        border: 1px solid var(--pink);
+        
+      }
+
+      .no-audit {
+        color: #61666d;
+        border: 1px solid #61666d;
+        border-radius: 3px;
+      }
+
+      .contentInfo {
         display: block;
       }
     }

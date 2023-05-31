@@ -26,7 +26,7 @@
         <!-- 登录，注册，用户信息 -->
         <div class="user-info-panel">
           <div class="op-btn">
-            <el-button type="primary" class="op-btn">
+            <el-button type="primary" class="op-btn" @click="newPost">
               发帖<span class="iconfont icon-add"></span>
             </el-button>
             <el-button type="primary" class="op-btn">
@@ -236,6 +236,14 @@ watch(
     immediate: true, deep: true
   }
 )
+// 发帖
+const newPost=()=>{
+  if(!store.getters.getLoginUserInfo){
+    loginAndRegister(1)
+  }else{
+    router.push('/newPost')
+  }
+}
 </script>
 <style scoped lang="scss">
 .header {
