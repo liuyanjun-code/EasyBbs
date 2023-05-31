@@ -53,7 +53,7 @@
             </div>
             <div class="user-info">
               <el-dropdown>
-                <avatar userId="7437465925" :width="50"></avatar>
+                <avatar :userId="userInfo.userId" :width="50"></avatar>
                 <template #dropdown>
                   <el-dropdown-menu>
                     <el-dropdown-item>我的主页</el-dropdown-item>
@@ -193,6 +193,7 @@ watch(
   }, {
   immediate: true, deep: true
 })
+
 // 监听是否展示登陆框(为后面点赞评论做准备)
 watch(
   () => store.state.showLogin,

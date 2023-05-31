@@ -8,6 +8,7 @@
       </div>
       <div class="comment-content">
         <span v-html="commentData.content"></span>
+        <CommentImage :src="globalInfo.iamgeUrl+commentData.imgPath.replace('.','_.')" v-if="commentData.imgPath"></CommentImage>
       </div>
       <div class="op-panel">
         <div class="time">
@@ -15,7 +16,7 @@
           <span class="address">&nbsp;·&nbsp;{{ commentData.userIpAddress }}</span>
         </div>
         <div class="iconfont icon-good">{{ commentData.goodCount > 0 ? commentData.goodCount : '点赞' }}</div>
-        <div class="iconfont icon-comment" @click="showReplyPanel(commentData)">回复</div>
+        <div class="iconfont icon-comment" @click="showReplyPanel(commentData, 0)">回复</div>
         <el-dropdown v-if="articleUserId == currentUserId">
           <div class="iconfont icon-more"></div>
           <template #dropdown>
@@ -25,23 +26,49 @@
           </template>
         </el-dropdown>
       </div>
+      <div class="comment-sub-list" v-if="commentData.children">
+        <div class="comment-list-item" v-for="sub in commentData.children">
+          <Avatar :width="30" :userId="sub.userId"></Avatar>
+          <div class="comment-sub-info">
+            <div class="nick-name">
+              <span class="name">{{ sub.nickName }}</span>
+              <span v-if="sub.userId == articleUserId" class="tag-author">作者</span>
+            </div>
+            <span class="reply-name">回复</span>
+            <span>@{{ sub.replyNickName }}</span>
+            <span>：</span>
+            <span class="sub-content" v-html="sub.content"></span>
+            <div class="op-panel">
+              <div class="time">
+                <span>{{ sub.postTime }}</span>
+                <span class="address">&nbsp;·&nbsp;{{ sub.userIpAddress }}</span>
+              </div>
+              <div class="iconfont icon-good">{{ sub.goodCount > 0 ? sub.goodCount : '点赞' }}</div>
+              <div class="iconfont icon-comment" @click="showReplyPanel(sub, 1)">回复</div>
+            </div>
+          </div>
+        </div>
+      </div>
       <div class="reply-info" v-if="commentData.showReply">
-        <CommentPost :avatarWidth="30" :userId="currentUserId" :showInsertImg="false"
-        :articleId="articleId"
-        :pCommentId="pCommentId"
-        :replayUserId="replayUserId"
-        @postCommentFinish="postCommentFinsh"
-        ></CommentPost>
+        <CommentPost 
+          :avatarWidth="30" 
+          :showInsertImg="false" :placeholderInfo="placeholderInfo" :userId="currentUserId"
+          :articleId="articleId" 
+          :pCommentId="pCommentId" 
+          :replyUserId="replyUserId"
+          @postCommentFinish="postCommentFinsh">
+        </CommentPost>
       </div>
     </div>
   </div>
 </template>
 <script setup>
 import { ref } from 'vue'
+import CommentImage from './CommentImage.vue';
 import CommentPost from './CommentPost.vue';
 const props = defineProps({
-  articleId:{
-    type:String
+  articleId: {
+    type: String
   },
   commentData: {
     type: Object
@@ -55,20 +82,26 @@ const props = defineProps({
 })
 const emit = defineEmits(['hiddenAllReply'])
 // 显示评论框
-const pCommentId =ref(0)
-const replayUserId=ref(null)
-const showReplyPanel = (curData) => {
-  const haveShow = curData.showReply == undefined ? false : curData.showReply
+const pCommentId = ref(0)
+const replyUserId = ref()
+const placeholderInfo = ref(null)
+const showReplyPanel = (curData, type) => {
+  const haveShow = props.commentData.showReply == undefined ? false : props.commentData.showReply
   emit('hiddenAllReply')
   // 一种很新的方式
   //commentData默认是没有showReply该参数
-  curData.showReply = !haveShow
-  pCommentId.value=curData.commentId
-  replayUserId.value=curData.userId
+  if (type == 0) {
+    props.commentData.showReply = !haveShow
+  } else {
+    props.commentData.showReply = true
+  }
+  pCommentId.value = props.commentData.commentId
+  replyUserId.value = curData.userId
+  placeholderInfo.value = '回复 @' + curData.nickName
 }
-const postCommentFinsh=(resultData)=>{
-  props.commentData.children=resultData
- }
+const postCommentFinsh = (resultData) => {
+  props.commentData.children = resultData
+}
 </script>
 <style lang='scss'>
 .comment-item {
@@ -100,6 +133,9 @@ const postCommentFinsh=(resultData)=>{
       margin-top: 5px;
       font-size: 15px;
       line-height: 22px;
+      span{
+        display: block;
+      }
     }
 
     .op-panel {
@@ -120,6 +156,29 @@ const postCommentFinsh=(resultData)=>{
 
       &::before {
         margin-right: 5px;
+      }
+    }
+
+    .comment-sub-list {
+      margin-top: 10px;
+
+      .comment-list-item {
+        display: flex;
+        margin: 5px;
+
+        .comment-sub-info {
+          margin-left: 5px;
+
+          .nick-name {
+            .reply-name {
+              margin: 0 5px;
+            }
+
+            .sub-content {
+              font-size: 15px
+            }
+          }
+        }
       }
     }
 

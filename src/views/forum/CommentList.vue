@@ -67,6 +67,7 @@ const loadComment = async () => {
   loading.value = true
   let result = await proxy.Request({
     url: api.loadComment,
+    showLoading: false,
     params
   })
   loading.value = false
