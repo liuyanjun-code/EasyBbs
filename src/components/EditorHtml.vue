@@ -71,4 +71,9 @@ const handleCreated = (editor) => {
 }
 </script>
 
-<style lang="scss"></style>
+<style lang="scss">
+.editor-html {
+  border: 1px solid #ddd;
+  z-index: 2; 
+}
+</style>
