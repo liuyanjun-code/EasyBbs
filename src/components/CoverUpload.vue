@@ -7,9 +7,9 @@
           <img :src="loadFile">
         </template>
         <template v-else>
-          <img :src="imageUrlPrefix ? imageUrlPrefix : globalInfo.imageUrl + modeValue.imageUrl"
-            v-if="modeValue && modeValue.imageUrl">
-          <span class="iconfont icon-add"></span>
+          <img :src="(imageUrlPrefix ? imageUrlPrefix : globalInfo.imageUrl) + modelValue.imageUrl"
+            v-if="modelValue && modelValue.imageUrl">
+          <span class="iconfont icon-add" v-else></span>
         </template>
       </div>
     </el-upload>
@@ -24,7 +24,7 @@ const props = defineProps({
     type: String
   },
   // 父组件 v-model 没有指定参数名，则默认是 modelValue
-  modeValue: {
+  modelValue: {
     type: Object,
     default: null
   }
@@ -40,7 +40,7 @@ const uploadImage = async (file) => {
     loadFile.value = target.result
   }
   loadPreview.value = true
-  emit('update:modeValue', file)
+  emit('update:modelValue', file)
 }
 </script>
 
