@@ -1,6 +1,7 @@
 <template>
   <div class="container-body article-detail-body" :style="{ width: globalInfo.bodyWidth + 'px' }"
     v-if="Object.keys(articleInfo).length > 0">
+    <!-- 板块导航 -->
     <div class="board-info">
       <router-link :to="`/forum/${articleInfo.pBoardId}`" class="a-link">{{ articleInfo.pBoardName }}</router-link>
       <span class="iconfont icon-right"></span>
@@ -12,8 +13,14 @@
       <span>{{ articleInfo.title }}</span>
     </div>
     <div class="detail-container" :style="{ width: globalInfo.bodyWidth - 300 + 'px' }">
+      <!-- 文章详情 -->
       <div class="article-detail">
-        <div class="title">{{ articleInfo.title }}</div>
+        <!-- 标题 -->
+        <div class="title">
+          {{ articleInfo.title }}
+          <el-tag v-if="articleInfo.status == 0" type="danger">待审核</el-tag>
+        </div>
+        <!-- 用户信息 -->
         <div class="user-info">
           <Avatar :userId="articleInfo.userId" :width="50"></Avatar>
           <div class="user-info-detail">
@@ -23,6 +30,10 @@
               <span class="address">&nbsp;·&nbsp;{{ articleInfo.userIpAddress }}</span>
               <span class="iconfont icon-eye-solid">{{ articleInfo.readCount === 0 ? '阅读' : articleInfo.readCount
               }}</span>
+              <RouterLink v-if="articleInfo.userId == currentUserInfo.userId" :to="`/editPost/${articleInfo.articleId}`"
+                class="a-link btn-edit">
+                <span class="iconfont icon-edit">编辑</span>
+              </RouterLink>
             </div>
           </div>
         </div>
@@ -49,8 +60,24 @@
       <!-- 评论 -->
       <div class="comment-panel" id="view-comment">
         <CommentList v-if="articleInfo.userId" :articleId="articleInfo.articleId" :articleUserId="articleInfo.userId"
-        @updateCommentCount="updateCommentCount"
-        ></CommentList>
+          @updateCommentCount="updateCommentCount"></CommentList>
+      </div>
+    </div>
+    <!-- 目录 -->
+    <div class="toc-panel">
+      <div class="top-container">
+        <div class="toc-title">目录</div>
+        <div class="toc-list">
+          <template v-if="tocArray.length == 0">
+            <div class="no-toc">未解析到目录</div>
+          </template>
+          <template v-else>
+            <div v-for="toc in tocArray">
+              <span :class="['toc-item', toc.id == anchorId ? 'active' : '']" @click="gotoAnchor(toc.id)"
+                :style="{ 'padding-left': toc.level * 15 + 'px' }">{{ toc.title }}</span>
+            </div>
+          </template>
+        </div>
       </div>
     </div>
   </div>
@@ -78,7 +105,7 @@
 import hljs from 'highlight.js';
 import 'highlight.js/styles/atom-one-light.css'
 import CommentList from './CommentList.vue'
-import { ref, reactive, getCurrentInstance, onMounted,nextTick } from 'vue'
+import { ref, reactive, getCurrentInstance, onMounted, nextTick, onUnmounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useStore } from 'vuex';
 const { proxy } = getCurrentInstance()
@@ -91,6 +118,7 @@ const api = {
   getUserDownloadInfo: "/forum/getUserDownloadInfo",
   attachmentDownload: '/api/forum/attachmentDownload'
 }
+const currentUserInfo = ref({})
 // 文章详情
 const articleInfo = ref({})
 // 附件
@@ -112,13 +140,23 @@ const getArticleDetail = async (articleId) => {
   articleInfo.value = result.data.forumArticle
   attachment.value = result.data.attachment
   havelike.value = result.data.haveLike
-  store.commit('setActivePBoardId',result.data.forumArticle.pBoardId)
-  store.commit('setActiveBoardId',result.data.forumArticle.boardId)
+  store.commit('setActivePBoardId', result.data.forumArticle.pBoardId)
+  store.commit('setActiveBoardId', result.data.forumArticle.boardId)
   // 图片预览
   imgagePreview()
   // 代码高亮
   highLightCode()
+  // 生成目录
+  makeToc()
 }
+// 监听用户登陆
+watch(
+  () => store.state.loginUserInfo,
+  (newVal, oldVal) => {
+    currentUserInfo.value = newVal || {}
+  },
+  { immediate: true, deep: true }
+);
 onMounted(() => {
   getArticleDetail(route.params.articleId)
 })
@@ -151,13 +189,12 @@ const doLikeHandler = async () => {
 }
 // 下载附件
 const downloadAttachment = async (fileId) => {
-  const currentUserInfo = store.getters.getLoginUserInfo
-  if (!currentUserInfo) {
+  if (!currentUserInfo.value) {
     store.commit('showLogin', true)
     return
   }
   // 0积分
-  if (attachment.value.integral == 0 || currentUserInfo.userId == articleInfo.value.userId) {
+  if (attachment.value.integral == 0 || currentUserInfo.value.userId == articleInfo.value.userId) {
     downloadDo(fileId)
     return
   }
@@ -195,39 +232,100 @@ const downloadAttachment = async (fileId) => {
   }
 }
 // 文章图片列表
-const imgaeViewerRef =ref(null)
+const imgaeViewerRef = ref(null)
 const previewImgList = ref([])
-const imgagePreview=()=>{
-  nextTick(()=>{
-    const imageNodeList=document.querySelectorAll('#detail img')
-    const imageList=[]
-    imageNodeList.forEach((item,index)=>{
-      const src=item.getAttribute('src')
+const imgagePreview = () => {
+  nextTick(() => {
+    const imageNodeList = document.querySelectorAll('#detail img')
+    const imageList = []
+    imageNodeList.forEach((item, index) => {
+      const src = item.getAttribute('src')
       imageList.push(src)
-      item.addEventListener('click',()=>{
+      item.addEventListener('click', () => {
         imgaeViewerRef.value.show(index)
       })
-      previewImgList.value=imageList
+      previewImgList.value = imageList
     })
   })
 }
 // 代码高亮
-const highLightCode=()=>{
-  nextTick(()=>{
-    let blocks=document.querySelectorAll('pre code')
-    blocks.forEach((item)=>{
+const highLightCode = () => {
+  nextTick(() => {
+    let blocks = document.querySelectorAll('pre code')
+    blocks.forEach((item) => {
       hljs.highlightBlock(item)
     })
   })
 }
 //  更新评论数量
-const updateCommentCount=(totalCount)=>{
+const updateCommentCount = (totalCount) => {
   console.log(totalCount)
-  articleInfo.value.commentCount=totalCount
+  articleInfo.value.commentCount = totalCount
 }
+// 获取目录
+const tocArray = ref([])
+const makeToc = () => {
+  nextTick(() => {
+    const tocTags = ['H1', 'H2', 'H3', 'H4', 'H5', 'H5']
+    // 获取所有h标签
+    const contentDom = document.querySelector('#detail')
+    let index = 0
+    const childNodes = contentDom.childNodes.forEach((item) => {
+      let tagName = item.tagName
+      if (tagName == undefined || !tocTags.includes(tagName.toUpperCase())) {
+        return true
+      }
+      index++
+      let id = 'toc' + index
+      item.setAttribute('id', id)
+      tocArray.value.push({
+        id: id,
+        title: item.innerText,
+        level: Number.parseInt(tagName.substring(1)),
+        offsetTop: item.offsetTop
+      })
+
+    })
+  })
+}
+const anchorId = ref(null)
+const gotoAnchor = (domId) => {
+  const dom = document.querySelector('#' + domId)
+  dom.scrollIntoView({
+    behavior: 'smooth',
+    block: 'start'
+  })
+}
+const listenerScroll = () => {
+  let currentScrollTop = getScrollTop()
+  tocArray.value.some((item, index) => {
+    if (
+      (index < tocArray.value.length - 1 &&
+        currentScrollTop >= tocArray.value[index].offsetTop &&
+        currentScrollTop < tocArray.value[index + 1].offsetTop) ||
+      (index == tocArray.value.length - 1 &&
+        currentScrollTop < tocArray.value[index].offsetTop)
+    ) {
+      anchorId.value = item.id
+      return true
+    }
+  })
+}
+const getScrollTop = () => {
+  let scrollTop = document.documentElement.scrollTop || window.pageYOffset || document.body.scrollTop
+  return scrollTop
+}
+onMounted(() => {
+  window.addEventListener('scroll', listenerScroll, false)
+})
+onUnmounted(() => {
+  window.removeEventListener('scroll', listenerScroll, false)
+})
 </script>
 <style lang='scss'>
 .article-detail-body {
+  position: relative;
+
   .board-info {
     line-height: 30px;
 
@@ -276,6 +374,14 @@ const updateCommentCount=(totalCount)=>{
             .iconfont {
               &:before {
                 padding-right: 4px;
+              }
+            }
+
+            .btn-edit {
+              margin-left: 10px;
+
+              .iconfont {
+                font-size: 14px;
               }
             }
           }
@@ -366,6 +472,62 @@ const updateCommentCount=(totalCount)=>{
 
     .have-like {
       color: red;
+    }
+  }
+}
+
+.toc-panel {
+  position: absolute;
+  top: 32px;
+  right: 0px;
+  width: 285px;
+  background: pink;
+
+  .top-container {
+    width: 285px;
+    position: fixed;
+    background-color: #fff;
+    height: 500px;
+
+    .toc-title {
+      border-bottom: 1px solid #ddd;
+      padding: 10px;
+    }
+
+    .toc-list {
+      max-height: calc(100vh - 200px);
+      overflow: auto;
+      padding: 5px;
+
+      .no-toc {
+        text-align: center;
+        color: #5f5d5d;
+        line-height: 40px;
+        font-size: 13px;
+      }
+
+      .toc-item {
+        cursor: pointer;
+        display: block;
+        line-height: 35px;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        color: #555666;
+        font-size: 14px;
+        border-radius: 3px;
+        border-left: 2px solid #fff;
+
+        &:hover {
+          background: #eeeded;
+        }
+      }
+
+      .active {
+        border-radius: 0px 3px 3px 0px;
+        border-left: 2px solid #6ca1f7;
+        background: #eeeded;
+      }
     }
   }
 }

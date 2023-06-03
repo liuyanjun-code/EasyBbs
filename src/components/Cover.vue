@@ -1,10 +1,11 @@
 <template>
-  <div class="cover" :style="{width:width+'px',height:width+'px'}">
-    <el-image :style="{width:width+'px',height:width+'px'}" fit="scale-down" loading="lazy" :src="cover?globalInfo.imageUrl+cover:localCover"></el-image>
+  <div class="cover" :style="{width:width+'px',height:width+'px'}" v-if="cover">
+    <el-image :style="{width:width+'px',height:width+'px'}" fit="scale-down" loading="lazy" :src="globalInfo.imageUrl+cover"></el-image>
   </div>
 </template>
 <script setup>
-const localCover=new URL('@/assets/normal.jpeg',import.meta.url).href
+// :src="cover?globalInfo.imageUrl+cover:localCover"
+// const localCover=new URL('@/assets/normal.jpeg',import.meta.url).href
 const props=defineProps({
   cover:{
     type:String

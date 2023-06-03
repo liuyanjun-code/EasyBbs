@@ -30,7 +30,7 @@
           </span>
         </div>
       </div>
-      <cover :cover="data.cover" :width="100"></cover>
+      <Cover :cover="data.cover" :width="100"></Cover>
     </div>
   </div>
 </template>

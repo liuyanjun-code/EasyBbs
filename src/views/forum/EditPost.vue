@@ -61,6 +61,7 @@
 <script setup>
 import { ref, reactive, getCurrentInstance, watch, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { ElMessageBox } from 'element-plus'
 const { proxy } = getCurrentInstance()
 const route = useRoute()
 const router = useRouter()
@@ -188,18 +189,18 @@ const postHandler = () => {
       params.attachmentType = 0;
     }
     // 封面 如果不选择图片就不修改
-    if(!(params.cover instanceof File)){
+    if (!(params.cover instanceof File)) {
       delete params.cover
     }
     // 如果附件不是文件类型，值设置为空
-    if(!(params.attachment instanceof File)){
+    if (!(params.attachment instanceof File)) {
       delete params.attachment
     }
     let result = await proxy.Request({
-      url:params.articleId?api.updateArticle:api.postArticle,
-      params:params
+      url: params.articleId ? api.updateArticle : api.postArticle,
+      params: params
     })
-    if(!result){
+    if (!result) {
       return
     }
     proxy.Message.success('发布成功')
