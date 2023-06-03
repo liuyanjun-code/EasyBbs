@@ -8,8 +8,6 @@
 import { ref, reactive, getCurrentInstance } from 'vue'
 import { useRoute, useRouter } from 'vue-router';
 const router = useRouter()
-const route = useRoute()
-const proxy = getCurrentInstance()
 const props = defineProps({
   userId: {
     type: String,
@@ -25,7 +23,7 @@ const props = defineProps({
 })
 const goToUcenter = () => {
   if (props.addLink) {
-    router.push('/user/' + proxy.userId)
+    router.push('/user/' + props.userId)
   }
 }
 </script>
