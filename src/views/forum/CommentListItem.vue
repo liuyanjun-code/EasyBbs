@@ -3,13 +3,13 @@
     <Avatar :userId="commentData.userId" :width="50"></Avatar>
     <div class="conmment-info">
       <div class="nick-name">
-        <span class="name">{{ commentData.nickName }}</span>
+        <span class="name" @click="gotoUcenter(commentData.userId)">{{ commentData.nickName }}</span>
         <span v-if="commentData.userId == articleUserId" class="tag-author">作者</span>
       </div>
       <div class="comment-content">
         <div>
           <span class="tag tag-topping" v-if="commentData.topType == 1">置顶</span>
-          <span class="tag no-audit" v-if="commentData.status==0">待审核</span>
+          <span class="tag no-audit" v-if="commentData.status == 0">待审核</span>
           <span v-html="commentData.content" class="contentInfo"></span>
         </div>
         <CommentImage :src="globalInfo.imageUrl + commentData.imgPath.replace('.', '_.')" v-if="commentData.imgPath">
@@ -20,7 +20,8 @@
           <span>{{ commentData.postTime }}</span>
           <span class="address">&nbsp;·&nbsp;{{ commentData.userIpAddress }}</span>
         </div>
-        <div class="iconfont icon-good">{{ commentData.goodCount > 0 ? commentData.goodCount : '点赞' }}</div>
+        <div :class="['iconfont icon-good', commentData.likeType == 1 ? 'active' : '']" @click="doLike(commentData)">{{
+          commentData.goodCount > 0 ? commentData.goodCount : '点赞' }}</div>
         <div class="iconfont icon-comment" @click="showReplyPanel(commentData, 0)">回复</div>
         <el-dropdown v-if="articleUserId == currentUserId">
           <div class="iconfont icon-more"></div>
@@ -36,11 +37,11 @@
           <Avatar :width="30" :userId="sub.userId"></Avatar>
           <div class="comment-sub-info">
             <div class="nick-name">
-              <span class="name">{{ sub.nickName }}</span>
+              <span class="name" @click="gotoUcenter(sub.userId)">{{ sub.nickName }}</span>
               <span v-if="sub.userId == articleUserId" class="tag-author">作者</span>
             </div>
             <span class="reply-name">回复</span>
-            <span>@{{ sub.replyNickName }}</span>
+            <span @click="gotoUcenter(sub.replyUserId)" class="a-link">@{{ sub.replyNickName }}</span>
             <span>：</span>
             <span class="sub-content" v-html="sub.content"></span>
             <div class="op-panel">
@@ -48,7 +49,8 @@
                 <span>{{ sub.postTime }}</span>
                 <span class="address">&nbsp;·&nbsp;{{ sub.userIpAddress }}</span>
               </div>
-              <div class="iconfont icon-good">{{ sub.goodCount > 0 ? sub.goodCount : '点赞' }}</div>
+              <div :class="['iconfont icon-good', sub.likeType == 1 ? 'active' : '']" @click="doLike(sub)">{{ sub.goodCount > 0
+                ? sub.goodCount : '点赞' }}</div>
               <div class="iconfont icon-comment" @click="showReplyPanel(sub, 1)">回复</div>
             </div>
           </div>
@@ -107,7 +109,26 @@ const showReplyPanel = (curData, type) => {
 }
 const postCommentFinsh = (resultData) => {
   props.commentData.children = resultData
+  placeholderInfo.value = undefined
 }
+const gotoUcenter = (userId) => {
+  router.push(`/user/${userId}`);
+};
+//点赞
+const doLike = async (data) => {
+  let result = await proxy.Request({
+    url: api.doLike,
+    showLoading: false,
+    params: {
+      commentId: data.commentId,
+    },
+  });
+  if (!result) {
+    return;
+  }
+  data.goodCount = result.data.goodCount;
+  data.likeType = result.data.likeType;
+};
 //置顶
 const opTop = async (data) => {
   let result = await proxy.Request({
@@ -164,9 +185,9 @@ const opTop = async (data) => {
       }
 
       .tag-topping {
-       color: var(--pink);
+        color: var(--pink);
         border: 1px solid var(--pink);
-        
+
       }
 
       .no-audit {
@@ -198,6 +219,10 @@ const opTop = async (data) => {
 
       &::before {
         margin-right: 5px;
+      }
+
+      .active {
+        color: var(--link);
       }
     }
 
