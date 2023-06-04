@@ -10,7 +10,9 @@ export default createStore({
     // 当前一级板块
     activePBoardId: 0,
     // 二级版块
-    activeBoardId: 0
+    activeBoardId: 0,
+    // 消息数
+    messageCountInfo: {}
   },
   getters: {
     getLoginUserInfo: state => {
@@ -23,13 +25,16 @@ export default createStore({
       let board = state.boardList.find(item => {
         return item.boardId == boardId
       })
-      return board  ? board.children : []
+      return board ? board.children : []
     },
     getActivePBoardId: state => {
       return state.activePBoardId
     },
     getActiveBoardId: state => {
       return state.activeBoardId
+    },
+    getMessageCountInfo: state => {
+      return state.messageCountInfo
     }
   },
   mutations: {
@@ -47,6 +52,14 @@ export default createStore({
     },
     setActiveBoardId(state, value) {
       state.activeBoardId = value
+    },
+    // 设置消息数
+    updateMessageCountInfo(state, value) {
+      state.messageCountInfo = value
+    },
+    readMessage(state, value) {
+      state.messageCountInfo.total = state.messageCountInfo.total - state.messageCountInfo[value]
+      state.messageCountInfo[value] = 0
     }
   },
   actions: {},

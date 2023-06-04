@@ -47,26 +47,33 @@
                   <el-dropdown-menu>
                     <el-dropdown-item @click="gotoMessage('reply')" class="message-item">
                       <span class="text">回复我的</span>
-                      <span class="count-tag" v-if="messageCountInfo.reply>0">{{ messageCountInfo.reply > 99 ? '99+' : messageCountInfo.reply }}</span>
+                      <span class="count-tag" v-if="messageCountInfo.reply > 0">{{ messageCountInfo.reply > 99 ? '99+' :
+                        messageCountInfo.reply }}</span>
                     </el-dropdown-item>
                     <el-dropdown-item @click="gotoMessage('likePost')" class="message-item">
-                      <span class="text">攒了我的文章</span>
-                      <span class="count-tag"  v-if="messageCountInfo.likePost>0">{{ messageCountInfo.likePost > 99 ? '99+' : messageCountInfo.likePost
+                      <span class="text">赞了我的文章</span>
+                      <span class="count-tag" v-if="messageCountInfo.likePost > 0">{{ messageCountInfo.likePost > 99 ?
+                        '99+'
+                        : messageCountInfo.likePost
                       }}</span>
                     </el-dropdown-item>
                     <el-dropdown-item @click="gotoMessage('downloadAttachment')" class="message-item">
                       <span class="text">下载了我的附件</span>
-                      <span class="count-tag"  v-if="messageCountInfo.downloadAttachment>0">{{ messageCountInfo.downloadAttachment > 99 ? '99+' :
+                      <span class="count-tag" v-if="messageCountInfo.downloadAttachment > 0">{{
+                        messageCountInfo.downloadAttachment > 99 ? '99+' :
                         messageCountInfo.downloadAttachment }}</span>
                     </el-dropdown-item>
                     <el-dropdown-item @click="gotoMessage('likeComment')" class="message-item">
-                      <span class="text">攒了我的评论</span>
-                      <span class="count-tag"  v-if="messageCountInfo.likeComment>0">{{ messageCountInfo.likeComment > 99 ? '99+' : messageCountInfo.likeComment
+                      <span class="text">赞了我的评论</span>
+                      <span class="count-tag" v-if="messageCountInfo.likeComment > 0">{{ messageCountInfo.likeComment > 99
+                        ?
+                        '99+' : messageCountInfo.likeComment
                       }}</span>
                     </el-dropdown-item>
                     <el-dropdown-item @click="gotoMessage('sys')" class="message-item">
                       <span class="text">系统消息</span>
-                      <span class="count-tag"  v-if="messageCountInfo.sys>0">{{ messageCountInfo.sys > 99 ? '99+' : messageCountInfo.sys }}</span>
+                      <span class="count-tag" v-if="messageCountInfo.sys > 0">{{ messageCountInfo.sys > 99 ? '99+' :
+                        messageCountInfo.sys }}</span>
                     </el-dropdown-item>
                   </el-dropdown-menu>
                 </template>
@@ -78,7 +85,7 @@
                 <template #dropdown>
                   <el-dropdown-menu>
                     <el-dropdown-item @click="gotoUcenter(userInfo.userId)">我的主页</el-dropdown-item>
-                    <el-dropdown-item>退出</el-dropdown-item>
+                    <el-dropdown-item @click="logout">退出</el-dropdown-item>
                   </el-dropdown-menu>
                 </template>
               </el-dropdown>
@@ -99,6 +106,7 @@
   </div>
 </template>
 <script setup>
+import { async } from '@kangc/v-md-editor';
 import LoginAndRegister from './LoginAndRegister.vue';
 import { ref, getCurrentInstance, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
@@ -111,7 +119,7 @@ const api = {
   getUserInfo: '/getUserInfo',
   loadBoard: '/board/loadBoard',
   getMessageCount: '/ucenter/getMessageCount',
-  loadMessageList: '/ucenter/loadMessageList'
+  logout: '/logout'
 }
 const logoInfo = ref([
   {
@@ -280,11 +288,43 @@ const loadMessageCount = async () => {
     return
   }
   messageCountInfo.value = result.data
+  store.commit('updateMessageCountInfo',result.data)
 }
+// 监听消息状态
+watch(
+  () => store.state.messageCountInfo,
+  (newVal, oldVal) => {
+    messageCountInfo.value=newVal
+  }, 
+  { immediate: true, deep: true }
+);
+
 loadMessageCount()
 //  个人主页
-const gotoUcenter=(userId)=>{
+const gotoUcenter = (userId) => {
   router.push(`/user/${userId}`)
+}
+
+watch(
+  () => store.state.loginUserInfo,
+  (newVal, oldVal) => { 
+    if(newVal){
+      loadMessageCount()
+    }
+  },
+  { immediate: true, deep: true }
+);
+// 退出登陆
+const logout = () => {
+  proxy.Confirm('确定要退出吗', async () => {
+    let result = await proxy.Request({
+      url: api.logout
+    })
+    if (!result) {
+      return
+    }
+    store.commit('updateLoginUserInfo', null)
+  })
 }
 </script>
 <style scoped lang="scss">
