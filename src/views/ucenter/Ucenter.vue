@@ -8,7 +8,7 @@
     <div class="ucenter-panel">
       <div class="user-side">
         <div class="avatar-panel">
-          <div class="edit-btn a-link" v-if="isCurrentUser">
+          <div class="edit-btn a-link" v-if="isCurrentUser" @click="updataUserInfo">
             修改资料
           </div>
           <div class="avatar-inner">
@@ -27,7 +27,7 @@
         <div class="user-extend-panel">
           <div class="info-item">
             <div class="label iconfont icon-integral">积分</div>
-            <div class="value a-link" v-if="isCurrentUser">{{ userInfo.currentIntegral }}</div>
+            <div class="value a-link" v-if="isCurrentUser" @click="showIntegralRecord">{{ userInfo.currentIntegral }}</div>
             <div class="value" v-else>{{ userInfo.currentIntegral }}</div>
           </div>
           <div class="info-item">
@@ -50,12 +50,30 @@
       </div>
 
       <div class="article-panel">
-
+        <el-tabs :mode-value="activeTabName" @tab-change="changeTab">
+          <el-tab-pane label="发帖" :name="0"></el-tab-pane>
+          <el-tab-pane label="评论" :name="1"></el-tab-pane>
+          <el-tab-pane label="点赞" :name="2"></el-tab-pane>
+        </el-tabs>
+        <div class="article-list">
+          <DataList :loading="loading" :dataSource="articleListInfo" @loadData="loadArticle" noDataMsg="暂无相关文章">
+            <template #default="{ data }">
+              <ArticleItem :data="data"></ArticleItem>
+            </template>
+          </DataList>
+        </div>
       </div>
     </div>
+    <!-- 修改用户信息 -->
+    <UcenterEditUserInfo ref="ucenterEditUserInfoRef" @resetUserInfo="resetUsreInfoHandler"></UcenterEditUserInfo>
+    <!-- 用户积分记录 -->
+    <UserIntegralRecord ref="ucenterIntegralRecordInfoRef"></UserIntegralRecord>
   </div>
 </template>
 <script setup>
+import ArticleItem from '../forum/ArticleItem.vue';
+import UcenterEditUserInfo from './UcenterEditUserInfo.vue';
+import UserIntegralRecord from './UserIntegralRecord.vue';
 import { ref, reactive, getCurrentInstance, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useStore } from 'vuex'
@@ -65,6 +83,7 @@ const router = useRouter()
 const store = useStore()
 const api = {
   getUserInfo: "/ucenter/getUserInfo",
+  loadUserArticle: '/ucenter/loadUserArticle'
 }
 const userId = ref(null)
 const userInfo = ref({})
@@ -80,22 +99,38 @@ const loginUserInfo = async () => {
   }
   userInfo.value = result.data
 }
-// 因为别人点击你的头像也可以获取你的用户信息，不能监听登陆的用户信息,否者看到的就是自己的用户信息
-// watch(
-//   () => store.state.loginUserInfo,
-//   (newVal, oldVal) => {
-//     if (newVal != undefined && newVal != null) {
-//       userInfo.value = newVal
-//     } else {
-//       userInfo.value = {}
-//     }
-//   },
-//   { immediate: true, deep: true }
-// );
+
+
+// 右侧文章
+const activeTabName = ref(0)
+const changeTab = (type) => {
+  activeTabName.value = type
+  loadArticle()
+}
+const loading = ref(false)
+const articleListInfo = ref({})
+const loadArticle = async () => {
+  loading.value = true
+  let params = {
+    type: activeTabName.value,
+    userId: userId.value
+  }
+  let result = await proxy.Request({
+    url: api.loadUserArticle,
+    params: params,
+    showLoading: false
+  })
+  loading.value = false
+  if (!result) {
+    return
+  }
+  articleListInfo.value = result.data
+}
+
 const isCurrentUser = ref(false)
 // 重新设置当前用户
 const resetCurrentUser = () => {
-  const loginUserInfo = store.getters.loginUserInfo
+  const loginUserInfo = store.getters.getLoginUserInfo
   if (loginUserInfo != undefined && loginUserInfo.userId == userId.value) {
     isCurrentUser.value = true
   } else {
@@ -117,11 +152,26 @@ watch(
       userId.value = newVal
       resetCurrentUser()
       loginUserInfo()
+      loadArticle()
     }
   },
   { immediate: true, deep: true }
-);
+)
+const ucenterEditUserInfoRef=ref(null)
+// 修改用户信息
+const updataUserInfo=()=>{
+  ucenterEditUserInfoRef.value.showEditUserInfoDialog(userInfo.value)
+}
+const resetUsreInfoHandler=(data)=>{
+  userInfo.value=data
+}
 
+// 获取用户积分记录
+const ucenterIntegralRecordInfoRef=ref(null)
+// 修改用户信息
+const showIntegralRecord=()=>{
+  ucenterIntegralRecordInfoRef.value.showRecord()
+}
 </script>
 <style lang='scss'>
 .ucenter {
@@ -203,6 +253,8 @@ watch(
 
     .article-panel {
       flex: 1;
+      background-color: #fff;
+      padding: 0 10px 10px 10px;
     }
   }
 }
