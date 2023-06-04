@@ -29,6 +29,10 @@ const router = createRouter({
           name:'用户信息',
           component:()=>import('@/views/ucenter/Ucenter.vue')
         },{
+          path:"/user/message/:type",
+          name:' 消息',
+          component:()=>import('@/views/ucenter/MessageList.vue')
+        },{
           path:"/newPost",
           name:'发布文章',
           component:()=>import('@/views/forum/EditPost.vue')

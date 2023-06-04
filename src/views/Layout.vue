@@ -7,12 +7,13 @@
         </router-link>
         <!-- 板块信息 -->
         <div class="menu-panel">
-          <router-link :class="['menu-item home', activePBoardId==undefined ? 'active' : '']" to="/">首页</router-link>
+          <router-link :class="['menu-item home', activePBoardId == undefined ? 'active' : '']" to="/">首页</router-link>
           <template v-for="board in boardList">
             <el-popover placement="bottom-start" :width="300" trigger="hover" v-if="board.children.length > 0">
               <template #reference>
-                <span :class="['menu-item', board.boardId == activePBoardId ? 'active' : '']" @click="boardClickHandler(board)">{{
-                  board.boardName }}</span>
+                <span :class="['menu-item', board.boardId == activePBoardId ? 'active' : '']"
+                  @click="boardClickHandler(board)">{{
+                    board.boardName }}</span>
               </template>
               <div class="sub-board-list">
                 <span :class="['sub-board', subBorad.boardId == activeBoardId ? 'active' : '']"
@@ -20,7 +21,8 @@
                     subBorad.boardName }}</span>
               </div>
             </el-popover>
-            <span :class="['menu-item',board.boardId == activePBoardId ? 'active' : '']" v-else @click="boardClickHandler(board)">{{ board.boardName }}</span>
+            <span :class="['menu-item', board.boardId == activePBoardId ? 'active' : '']" v-else
+              @click="boardClickHandler(board)">{{ board.boardName }}</span>
           </template>
         </div>
         <!-- 登录，注册，用户信息 -->
@@ -37,26 +39,45 @@
           <template v-if="userInfo.userId">
             <div class="message-info">
               <el-dropdown>
-                <el-badge :value="12" class="item">
+                <el-badge :value="messageCountInfo.total" class="item"
+                  :hidden="messageCountInfo.total == 0 || messageCountInfo.total == null">
                   <div class="iconfont icon-message"></div>
                 </el-badge>
                 <template #dropdown>
                   <el-dropdown-menu>
-                    <el-dropdown-item>回复我的</el-dropdown-item>
-                    <el-dropdown-item>攒了我的文章</el-dropdown-item>
-                    <el-dropdown-item>下载了我的附件</el-dropdown-item>
-                    <el-dropdown-item>攒了我的评论</el-dropdown-item>
-                    <el-dropdown-item>系统消息</el-dropdown-item>
+                    <el-dropdown-item @click="gotoMessage('reply')" class="message-item">
+                      <span class="text">回复我的</span>
+                      <span class="count-tag" v-if="messageCountInfo.reply>0">{{ messageCountInfo.reply > 99 ? '99+' : messageCountInfo.reply }}</span>
+                    </el-dropdown-item>
+                    <el-dropdown-item @click="gotoMessage('likePost')" class="message-item">
+                      <span class="text">攒了我的文章</span>
+                      <span class="count-tag"  v-if="messageCountInfo.likePost>0">{{ messageCountInfo.likePost > 99 ? '99+' : messageCountInfo.likePost
+                      }}</span>
+                    </el-dropdown-item>
+                    <el-dropdown-item @click="gotoMessage('downloadAttachment')" class="message-item">
+                      <span class="text">下载了我的附件</span>
+                      <span class="count-tag"  v-if="messageCountInfo.downloadAttachment>0">{{ messageCountInfo.downloadAttachment > 99 ? '99+' :
+                        messageCountInfo.downloadAttachment }}</span>
+                    </el-dropdown-item>
+                    <el-dropdown-item @click="gotoMessage('likeComment')" class="message-item">
+                      <span class="text">攒了我的评论</span>
+                      <span class="count-tag"  v-if="messageCountInfo.likeComment>0">{{ messageCountInfo.likeComment > 99 ? '99+' : messageCountInfo.likeComment
+                      }}</span>
+                    </el-dropdown-item>
+                    <el-dropdown-item @click="gotoMessage('sys')" class="message-item">
+                      <span class="text">系统消息</span>
+                      <span class="count-tag"  v-if="messageCountInfo.sys>0">{{ messageCountInfo.sys > 99 ? '99+' : messageCountInfo.sys }}</span>
+                    </el-dropdown-item>
                   </el-dropdown-menu>
                 </template>
               </el-dropdown>
             </div>
             <div class="user-info">
               <el-dropdown>
-                <avatar :userId="userInfo.userId" :width="50"></avatar>
+                <avatar :userId="userInfo.userId" :width="50" :addLink="false"></avatar>
                 <template #dropdown>
                   <el-dropdown-menu>
-                    <el-dropdown-item>我的主页</el-dropdown-item>
+                    <el-dropdown-item @click="gotoUcenter(userInfo.userId)">我的主页</el-dropdown-item>
                     <el-dropdown-item>退出</el-dropdown-item>
                   </el-dropdown-menu>
                 </template>
@@ -88,7 +109,9 @@ const router = useRouter()
 const store = useStore()
 const api = {
   getUserInfo: '/getUserInfo',
-  loadBoard: '/board/loadBoard'
+  loadBoard: '/board/loadBoard',
+  getMessageCount: '/ucenter/getMessageCount',
+  loadMessageList: '/ucenter/loadMessageList'
 }
 const logoInfo = ref([
   {
@@ -154,7 +177,7 @@ const loginAndRegister = (type) => {
 }
 onMounted(() => {
   initSctoll(),
-  getUserInfo()
+    getUserInfo()
 })
 // 获取用户信息
 const getUserInfo = async () => {
@@ -219,7 +242,7 @@ watch(
   () => store.state.activePBoardId,
   (newVal, oldval) => {
     // if (newVal != undefined) {
-      activePBoardId.value = newVal
+    activePBoardId.value = newVal
     // }
   },
   {
@@ -237,12 +260,31 @@ watch(
   }
 )
 // 发帖
-const newPost=()=>{
-  if(!store.getters.getLoginUserInfo){
+const newPost = () => {
+  if (!store.getters.getLoginUserInfo) {
     loginAndRegister(1)
-  }else{
+  } else {
     router.push('/newPost')
   }
+}
+// 消息
+const gotoMessage = (type) => {
+  router.push(`/user/message/${type}`)
+}
+const messageCountInfo = ref({})
+const loadMessageCount = async () => {
+  let result = await proxy.Request({
+    url: api.getMessageCount,
+  })
+  if (!result) {
+    return
+  }
+  messageCountInfo.value = result.data
+}
+loadMessageCount()
+//  个人主页
+const gotoUcenter=(userId)=>{
+  router.push(`/user/${userId}`)
 }
 </script>
 <style scoped lang="scss">
@@ -274,7 +316,8 @@ const newPost=()=>{
         margin-left: 20px;
         cursor: pointer;
       }
-      .home{
+
+      .home {
         text-decoration: none;
         color: #000;
       }
@@ -296,14 +339,14 @@ const newPost=()=>{
       }
 
       .message-info {
+        margin-left: 10px;
+        margin-right: 25px;
+        cursor: pointer;
+
         .icon-message {
           font-size: 20px;
           color: rgb(147, 147, 147);
         }
-
-        margin-left: 10px;
-        margin-right: 25px;
-        cursor: pointer;
       }
     }
   }
@@ -342,4 +385,26 @@ const newPost=()=>{
 .body-content {
   margin-top: 60px;
   position: relative;
+}
+
+.message-item {
+  display: flex;
+  justify-content: space-around;
+
+  .text {
+    flex: 1;
+  }
+
+  .count-tag {
+    height: 15px;
+    line-height: 15px;
+    min-width: 20px;
+    display: inline-block;
+    background: #f56c6c;
+    border-radius: 10px;
+    font-size: 13px;
+    text-align: center;
+    color: #fff;
+    margin-left: 10px;
+  }
 }</style>
