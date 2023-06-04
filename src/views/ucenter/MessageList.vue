@@ -61,10 +61,58 @@
       <div class="message-list">
         <DataList :loading="loading" :dataSource="messageListInfo" @loadData="loadMessage" noDataMsg="暂无消息">
           <template #default="{ data }">
-            <div class="message-item" v-if="data.messageType==0">
+            <!-- 系统消息 -->
+            <div class="message-item" v-if="data.messageType == 0">
               <div class="message-content">
                 <span v-html="data.messageContent"></span>
-                <span class="create-time"></span>
+                <span class="create-time">{{ data.createTime }}</span>
+              </div>
+            </div>
+            <!-- 回复我的 -->
+            <div class="message-item" v-if="data.messageType == 1">
+              <Avatar :userId="data.sendUserId" :width="50"></Avatar>
+              <div class="message-content">
+                <div>
+                  <router-link  class="a-link" :to="`/user/${data.sendUserId}`">@{{ data.sendNickName }}</router-link>
+                  对文章<router-link  class="a-link" :to="`/post/${data.articleId}`">【{{ data.articleTitle }}】</router-link>发表了评论
+                  <span class="create-time">{{ data.createTime }}</span>
+                </div>
+                <div class="reply-content" v-html="data.messageContent"></div>
+              </div>
+            </div>
+            <!-- 赞了我的评论 -->
+            <div class="message-item" v-if="data.messageType == 3">
+              <Avatar :userId="data.sendUserId" :width="50"></Avatar>
+              <div class="message-content">
+                <div>
+                  <router-link  class="a-link" :to="`/user/${data.sendUserId}`">@{{ data.sendNickName }}</router-link>
+                  在文章<router-link  class="a-link" :to="`/post/${data.articleId}`">【{{ data.articleTitle }}】</router-link>中赞了我的评论
+                  <span class="create-time">{{ data.createTime }}</span>
+                </div>
+                <div class="reply-content" v-html="data.messageContent"></div>
+              </div>
+            </div>
+            <!-- 赞了我的文章 -->
+            <div class="message-item" v-if="data.messageType == 2">
+              <Avatar :userId="data.sendUserId" :width="50"></Avatar>
+              <div class="message-content">
+                <div>
+                  <router-link  class="a-link" :to="`/user/${data.sendUserId}`">@{{ data.sendNickName }}</router-link>
+                  攒了我的文章<router-link  class="a-link" :to="`/post/${data.articleId}`">【{{ data.articleTitle }}】</router-link>
+                  <span class="create-time">{{ data.createTime }}</span>
+                </div>
+              </div>
+            </div>
+            <!-- 下载了我的附件 -->
+            <div class="message-item" v-if="data.messageType == 4">
+              <Avatar :userId="data.sendUserId" :width="50"></Avatar>
+              <div class="message-content">
+                <div>
+                  <router-link  class="a-link" :to="`/user/${data.sendUserId}`">@{{ data.sendNickName }}</router-link>
+                  下载了我的<router-link  class="a-link" :to="`/post/${data.articleId}`">【{{ data.articleTitle }}】</router-link>文章中的附件
+                  <span class="create-time">{{ data.createTime }}</span>
+                </div>
+                <div class="reply-content" v-html="data.messageContent"></div>
               </div>
             </div>
           </template>
@@ -136,7 +184,7 @@ watch(
   () => store.state.loginUserInfo,
   (newVal, oldVal) => {
     if (newVal) {
-      userId.value=newVal.userId
+      userId.value = newVal.userId
     }
   },
   { immediate: true, deep: true });
@@ -186,6 +234,28 @@ watch(
         top: 5px;
         right: 10px;
         font-size: 14px;
+      }
+    }
+
+    .message-list {
+      .message-item {
+        display: flex;
+        justify-content: flex-start;
+        align-items: center;
+        font-size: 14px;
+        border-bottom: 1px solid #ddd;
+        padding: 10px;
+        .message-content {
+          margin-left: 5px;
+          .create-time {
+            color: #9ba7b9;
+            margin-left: 10px;
+          }
+          .reply-content{
+            border-left: 2px solid #538ee8c9;
+            margin-top: 5px;
+          }
+        }
       }
 
     }
