@@ -31,7 +31,7 @@
             <el-button type="primary" class="op-btn" @click="newPost">
               发帖<span class="iconfont icon-add"></span>
             </el-button>
-            <el-button type="primary" class="op-btn">
+            <el-button type="primary" class="op-btn" @click="goSearch">
               搜索<span class="iconfont icon-search"></span>
             </el-button>
           </div>
@@ -101,7 +101,7 @@
     <div class="body-content">
       <router-view></router-view>
     </div>
-    <div class="footer">
+    <div class="footer" v-if="showFooter">
       <div class="footer-content" :style="{ width: globalInfo.bodyWidth + 'px' }">
         <el-row>
           <el-col :span="6" class="item">
@@ -132,7 +132,6 @@
   </div>
 </template>
 <script setup>
-import { async } from '@kangc/v-md-editor';
 import LoginAndRegister from './LoginAndRegister.vue';
 import { ref, getCurrentInstance, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
@@ -140,6 +139,7 @@ import { useStore } from 'vuex'
 // 获取全局内容
 const { proxy } = getCurrentInstance()
 const router = useRouter()
+const route =useRoute()
 const store = useStore()
 const api = {
   getUserInfo: '/getUserInfo',
@@ -364,6 +364,22 @@ const loadSystemSetting = async () => {
   }
   store.commit('saveSystemSetting', result.data)
 }
+const goSearch=()=>{
+  router.push('/search')
+}
+//是否展示底部
+const showFooter = ref(true);
+watch(
+  () => route.path,
+  (newVal, oldVal) => {
+    if (newVal.indexOf("newPost") != -1 || newVal.indexOf("editPost") != -1) {
+      showFooter.value = false;
+    } else {
+      showFooter.value = true;
+    }
+  },
+  { immediate: true, deep: true }
+);
 </script>
 <style scoped lang="scss">
 .header {
@@ -463,6 +479,7 @@ const loadSystemSetting = async () => {
 .body-content {
   margin-top: 60px;
   position: relative;
+  min-height: calc(100vh - 210px);
 }
 
 .message-item {
