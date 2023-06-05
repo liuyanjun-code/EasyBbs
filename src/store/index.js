@@ -12,7 +12,9 @@ export default createStore({
     // 二级版块
     activeBoardId: 0,
     // 消息数
-    messageCountInfo: {}
+    messageCountInfo: {},
+    // 系统设置
+    systemSetting:{}
   },
   getters: {
     getLoginUserInfo: state => {
@@ -60,6 +62,9 @@ export default createStore({
     readMessage(state, value) {
       state.messageCountInfo.total = state.messageCountInfo.total - state.messageCountInfo[value]
       state.messageCountInfo[value] = 0
+    },
+    saveSystemSetting(state,value){
+      state.systemSetting=value
     }
   },
   actions: {},

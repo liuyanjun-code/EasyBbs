@@ -18,7 +18,7 @@
         <!-- 标题 -->
         <div class="title">
           {{ articleInfo.title }}
-          <el-tag v-if="articleInfo.status == 0" type="danger">待审核</el-tag>
+          <span v-if="articleInfo.status == 0" class="tag tag-no-audit">待审核</span>
         </div>
         <!-- 用户信息 -->
         <div class="user-info">
@@ -58,7 +58,7 @@
         </div>
       </div>
       <!-- 评论 -->
-      <div class="comment-panel" id="view-comment">
+      <div class="comment-panel" id="view-comment" v-if="showComment">
         <CommentList v-if="articleInfo.userId" :articleId="articleInfo.articleId" :articleUserId="articleInfo.userId"
           @updateCommentCount="updateCommentCount"></CommentList>
       </div>
@@ -89,8 +89,9 @@
         <span :class="['iconfont icon-good', havelike ? 'have-like' : '']"></span>
       </div>
     </el-badge>
-    <el-badge :value="articleInfo.commentCount" type="info" :hidden="!articleInfo.commentCount > 0">
-      <div class="quick-item" @click="goToPosition('view-comment')">
+    <!-- 评论 -->
+    <el-badge :value="articleInfo.commentCount" type="info" :hidden="!articleInfo.commentCount > 0" v-if="showComment">
+      <div class="quick-item" @click="goToPosition('view-comment')" v-if="showComment">
         <span class="iconfont icon-comment"></span>
       </div>
     </el-badge>
@@ -321,6 +322,15 @@ onMounted(() => {
 onUnmounted(() => {
   window.removeEventListener('scroll', listenerScroll, false)
 })
+
+const showComment = ref(false)
+watch(
+  () => store.state.systemSetting,
+  (newVal, oldVal) => {
+    showComment.value = newVal.commentOpen
+  },
+  { immediate: true, deep: true }
+);
 </script>
 <style lang='scss'>
 .article-detail-body {

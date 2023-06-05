@@ -27,7 +27,8 @@
         <div class="user-extend-panel">
           <div class="info-item">
             <div class="label iconfont icon-integral">积分</div>
-            <div class="value a-link" v-if="isCurrentUser" @click="showIntegralRecord">{{ userInfo.currentIntegral }}</div>
+            <div class="value a-link" v-if="isCurrentUser" @click="showIntegralRecord">{{ userInfo.currentIntegral }}
+            </div>
             <div class="value" v-else>{{ userInfo.currentIntegral }}</div>
           </div>
           <div class="info-item">
@@ -58,7 +59,7 @@
         <div class="article-list">
           <DataList :loading="loading" :dataSource="articleListInfo" @loadData="loadArticle" noDataMsg="暂无相关文章">
             <template #default="{ data }">
-              <ArticleItem :data="data"></ArticleItem>
+              <ArticleItem :data="data" :showEdit="activeTabName == 0 && isCurrentUser" :showComment="showComment"></ArticleItem>
             </template>
           </DataList>
         </div>
@@ -157,21 +158,29 @@ watch(
   },
   { immediate: true, deep: true }
 )
-const ucenterEditUserInfoRef=ref(null)
+const ucenterEditUserInfoRef = ref(null)
 // 修改用户信息
-const updataUserInfo=()=>{
+const updataUserInfo = () => {
   ucenterEditUserInfoRef.value.showEditUserInfoDialog(userInfo.value)
 }
-const resetUsreInfoHandler=(data)=>{
-  userInfo.value=data
+const resetUsreInfoHandler = (data) => {
+  userInfo.value = data
 }
 
 // 获取用户积分记录
-const ucenterIntegralRecordInfoRef=ref(null)
+const ucenterIntegralRecordInfoRef = ref(null)
 // 修改用户信息
-const showIntegralRecord=()=>{
+const showIntegralRecord = () => {
   ucenterIntegralRecordInfoRef.value.showRecord()
 }
+const showComment = ref(false)
+watch(
+  () => store.state.systemSetting,
+  (newVal, oldVal) => {
+    showComment.value = newVal.commentOpen
+  },
+  { immediate: true, deep: true }
+);
 </script>
 <style lang='scss'>
 .ucenter {

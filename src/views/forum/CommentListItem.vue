@@ -27,7 +27,7 @@
           <div class="iconfont icon-more"></div>
           <template #dropdown>
             <el-dropdown-item @click="opTop(commentData)">
-              {{ commentData.opType == 0 ? '设为置顶' : '取消置顶' }}
+              {{ commentData.topType == 0 ? '设为置顶' : '取消置顶' }}
             </el-dropdown-item>
           </template>
         </el-dropdown>

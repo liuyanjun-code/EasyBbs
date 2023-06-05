@@ -1,5 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
-
+import store from '@/store'
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
@@ -42,8 +42,18 @@ const router = createRouter({
           component:()=>import('@/views/forum/EditPost.vue')
         }
       ]
+    },
+    {
+      path:'/:pathMatch(.*)*',
+      name:'错误页面',
+      component:()=>import('@/views/Error404.vue')
     }
   ]
 })
-
+router.beforeEach((to,from,next)=>{
+  if(to.path.indexOf('/user')!=-1){
+    store.commit('setActivePBoardId',-1)
+  }
+  next()
+})
 export default router

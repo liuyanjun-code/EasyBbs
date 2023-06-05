@@ -101,8 +101,34 @@
     <div class="body-content">
       <router-view></router-view>
     </div>
+    <div class="footer">
+      <div class="footer-content" :style="{ width: globalInfo.bodyWidth + 'px' }">
+        <el-row>
+          <el-col :span="6" class="item">
+            <div class="logo">
+              <div class="logo-letter">
+                <span v-for="(item, index) in logoInfo" :key="index" :style="{ color: item.color }">{{ item.letter
+                }}</span>
+              </div>
+              <div class="info">一个干货满满的社区</div>
+            </div>
+          </el-col>
+          <el-col :span="6" class="item">
+            <div class="title">网站相关</div>
+          </el-col>
+          <el-col :span="6" class="item">
+            <div class="title">友情链接</div>
+          </el-col>
+          <el-col :span="6" class="item">
+            <div class="title">关注站长</div>
+          </el-col>
+        </el-row>
+      </div>
+    </div>
     <!-- 登陆注册 -->
     <LoginAndRegister ref="loginRegisterRef" />
+    <!-- 回到顶部 -->
+    <el-backtop :right="100" :bottom="100"></el-backtop>
   </div>
 </template>
 <script setup>
@@ -119,7 +145,8 @@ const api = {
   getUserInfo: '/getUserInfo',
   loadBoard: '/board/loadBoard',
   getMessageCount: '/ucenter/getMessageCount',
-  logout: '/logout'
+  logout: '/logout',
+  getSysSetting: '/getSysSetting'
 }
 const logoInfo = ref([
   {
@@ -184,8 +211,9 @@ const loginAndRegister = (type) => {
   loginRegisterRef.value.showPanel(type)
 }
 onMounted(() => {
-  initSctoll(),
-    getUserInfo()
+  initSctoll()
+  getUserInfo()
+  loadSystemSetting()
 })
 // 获取用户信息
 const getUserInfo = async () => {
@@ -288,14 +316,14 @@ const loadMessageCount = async () => {
     return
   }
   messageCountInfo.value = result.data
-  store.commit('updateMessageCountInfo',result.data)
+  store.commit('updateMessageCountInfo', result.data)
 }
 // 监听消息状态
 watch(
   () => store.state.messageCountInfo,
   (newVal, oldVal) => {
-    messageCountInfo.value=newVal
-  }, 
+    messageCountInfo.value = newVal
+  },
   { immediate: true, deep: true }
 );
 
@@ -307,8 +335,8 @@ const gotoUcenter = (userId) => {
 
 watch(
   () => store.state.loginUserInfo,
-  (newVal, oldVal) => { 
-    if(newVal){
+  (newVal, oldVal) => {
+    if (newVal) {
       loadMessageCount()
     }
   },
@@ -325,6 +353,16 @@ const logout = () => {
     }
     store.commit('updateLoginUserInfo', null)
   })
+}
+// 获取系统设置
+const loadSystemSetting = async () => {
+  let result = await proxy.Request({
+    url: api.getSysSetting
+  })
+  if (!result) {
+    return
+  }
+  store.commit('saveSystemSetting', result.data)
 }
 </script>
 <style scoped lang="scss">
@@ -446,5 +484,37 @@ const logout = () => {
     text-align: center;
     color: #fff;
     margin-left: 10px;
+  }
+}
+
+.footer {
+  background-color: #ececec;
+  height: 140px;
+  margin-top: 10px;
+
+  .footer-content {
+    margin: 0 auto;
+    padding-top: 10px;
+
+    .item {
+      text-align: left;
+
+      .title {
+        color: #515151;
+        font-size: 18px;
+        margin-bottom: 10px;
+      }
+    }
+
+    .logo {
+      .logo-letter {
+        font-size: 30px;
+      }
+
+      .info {
+        margin-top: 10px;
+        color: #a0a0a0;
+      }
+    }
   }
 }</style>

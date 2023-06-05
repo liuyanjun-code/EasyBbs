@@ -21,7 +21,7 @@
     <div class="article-list">
       <DataList :loading="loading" :dataSource="articleListInfo" @loadData="loadArticle" noDataMsg="没有发现帖子,快发布一个">
         <template #default="{ data }">
-          <ArticleItem :data="data"></ArticleItem>
+          <ArticleItem :data="data" :showComment="showComment"></ArticleItem>
         </template>
       </DataList>
     </div>
@@ -102,6 +102,14 @@ watch(
     immediate: true, deep: true
   }
 )
+const showComment = ref(false)
+watch(
+  () => store.state.systemSetting,
+  (newVal, oldVal) => {
+    showComment.value = newVal.commentOpen
+  },
+  { immediate: true, deep: true }
+);
 </script>
 <style lang='scss'>
 .article-list-body {
